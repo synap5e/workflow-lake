@@ -1,6 +1,6 @@
 """One entrypoint, one subcommand per CronJob.
 
-    lake init-db
+    lake migrate           [--check]
     lake discover-tip      [--mode complete|comfy|all] [--max-pages N]
     lake discover-backlog  [--partitions N]
     lake fetch             [--batch N] [--no-prefix]
@@ -22,6 +22,7 @@ import os
 import pathlib
 import sys
 
+from lake import migrate
 from lake.config import Config
 from lake.db import Frontier
 from lake.latch import Latched
@@ -33,14 +34,18 @@ def _frontier(cfg: Config) -> Frontier:
     return Frontier(cfg.database_url)
 
 
-def cmd_init_db(cfg: Config, args: argparse.Namespace) -> dict:
+def cmd_migrate(cfg: Config, args: argparse.Namespace) -> dict:
+    """Apply pending migrations. Safe to run concurrently and on every pod start.
+
+    This runs as an initContainer on every job rather than as a Job someone has
+    to remember, because "the manifests assume a schema nothing creates" is a
+    failure mode that only shows up in production.
+    """
     frontier = _frontier(cfg)
-    applied = []
-    for path in sorted(MIGRATIONS.glob("*.sql")):
-        frontier.migrate(path.read_text())
-        applied.append(path.name)
-    frontier.close()
-    return {"applied": applied}
+    try:
+        return migrate.run(frontier, MIGRATIONS, dry_run=args.check)
+    finally:
+        frontier.close()
 
 
 def cmd_discover_tip(cfg: Config, args: argparse.Namespace) -> dict:
@@ -153,7 +158,13 @@ def build_parser() -> argparse.ArgumentParser:
     ap = argparse.ArgumentParser(prog="lake")
     sub = ap.add_subparsers(dest="command", required=True)
 
-    sub.add_parser("init-db").set_defaults(fn=cmd_init_db)
+    p = sub.add_parser("migrate", help="apply pending schema migrations (idempotent)")
+    p.add_argument("--check", action="store_true", help="report pending, apply nothing")
+    p.set_defaults(fn=cmd_migrate)
+    # Kept so anything that documented the old name keeps working.
+    p = sub.add_parser("init-db", help="alias for `migrate`")
+    p.add_argument("--check", action="store_true")
+    p.set_defaults(fn=cmd_migrate)
 
     for name, fn in (
         ("discover-tip", cmd_discover_tip),

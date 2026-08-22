@@ -50,7 +50,8 @@ curl -sf "http://127.0.0.1:18123/" \
   --data-binary "CREATE DATABASE IF NOT EXISTS workflow_lake" >/dev/null
 
 cd "$ROOT"
-echo "== init-db =="            && uv run --quiet lake init-db
+echo "== migrate =="            && uv run --quiet lake migrate
+echo "== migrate is idempotent ==" && uv run --quiet lake migrate
 echo "== discover-tip =="       && uv run --quiet lake discover-tip --max-pages 2
 echo "== discover-backlog =="   && uv run --quiet lake discover-backlog --partitions 2
 echo "== fetch =="              && uv run --quiet lake fetch --batch 15
@@ -69,6 +70,20 @@ ch_q "SELECT class_type, count() n FROM derived_workflow_nodes GROUP BY class_ty
 echo "== re-ingest is idempotent (ReplacingMergeTree) =="
 uv run --quiet lake ingest >/dev/null
 ch_q "SELECT count(), uniqExact(workflow_id) FROM derived_workflows FINAL FORMAT TSV"
+
+echo "== concurrent migrate does not race (5 pods ticking together) =="
+# Wait on THESE pids only. A bare `wait` also waits for the ClickHouse server
+# started with `&` above, which never exits — the run would hang here forever.
+migrate_pids=()
+for _ in 1 2 3 4 5; do
+  uv run --quiet lake migrate >/dev/null &
+  migrate_pids+=($!)
+done
+for pid in "${migrate_pids[@]}"; do
+  wait "$pid" || { echo "  FAIL: a concurrent migrate errored"; exit 1; }
+done
+echo "  5 concurrent migrations, all clean"
+uv run --quiet lake migrate --check
 
 echo "== the latch stops the next run =="
 uv run --quiet python -c "

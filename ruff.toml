@@ -1,0 +1,12 @@
+# Probe scripts are single-file `uv run --script` programs, so there is no
+# package config to hang this off — hence a standalone ruff.toml.
+line-length = 100
+
+[lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+ignore = [
+    "E501",   # long lines are wrapped by hand where it reads better
+    "SIM108", # ternaries are not always clearer than if/else
+    "SIM102", # nested ifs often read better than one long `and` chain
+    "B008",   # reference-table paths are deliberate call-in-default arguments
+]

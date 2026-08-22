@@ -1,0 +1,5949 @@
+{
+ "comfyui_version": "0.30.0",
+ "commit": "2eb609766a74",
+ "count": 791,
+ "files_with_mappings": 163,
+ "hidden_prompt_count": 22,
+ "class_types": [
+  "APG",
+  "ARVideoI2V",
+  "AddNoise",
+  "AlignYourStepsScheduler",
+  "AnimaLLLiteApply",
+  "AudioAdjustVolume",
+  "AudioConcat",
+  "AudioEncoderEncode",
+  "AudioEncoderLoader",
+  "AudioEqualizer3Band",
+  "AudioMerge",
+  "AutogrowNamesTestNode",
+  "AutogrowPrefixTestNode",
+  "BasicGuider",
+  "BasicScheduler",
+  "BatchImagesMasksLatentsNode",
+  "BatchImagesNode",
+  "BatchLatentsNode",
+  "BatchMasksNode",
+  "BeebleSwitchXImageEdit",
+  "BeebleSwitchXVideoEdit",
+  "BerniniConditioning",
+  "BetaSamplingScheduler",
+  "BriaImageEditNode",
+  "BriaRemoveImageBackground",
+  "BriaRemoveVideoBackground",
+  "BriaTransparentVideoBackground",
+  "BriaVideoGreenScreen",
+  "BriaVideoReplaceBackground",
+  "BuildJsonPromptIdeogram",
+  "ByteDance2FirstLastFrameNode",
+  "ByteDance2ReferenceNode",
+  "ByteDance2TextToVideoNode",
+  "ByteDanceCreateImageAsset",
+  "ByteDanceCreateVideoAsset",
+  "ByteDanceFirstLastFrameNode",
+  "ByteDanceImageNode",
+  "ByteDanceImageReferenceNode",
+  "ByteDanceImageToVideoNode",
+  "ByteDanceSeedAudio",
+  "ByteDanceSeedNode",
+  "ByteDanceSeedreamNode",
+  "ByteDanceSeedreamNodeV2",
+  "ByteDanceTextToVideoNode",
+  "CFGGuider",
+  "CFGNorm",
+  "CFGOverride",
+  "CFGZeroStar",
+  "CLIPAttentionMultiply",
+  "CLIPLoader",
+  "CLIPMergeAdd",
+  "CLIPMergeSimple",
+  "CLIPMergeSubtract",
+  "CLIPSave",
+  "CLIPSetLastLayer",
+  "CLIPTextEncode",
+  "CLIPTextEncodeControlnet",
+  "CLIPTextEncodeFlux",
+  "CLIPTextEncodeHiDream",
+  "CLIPTextEncodeHunyuanDiT",
+  "CLIPTextEncodeKandinsky5",
+  "CLIPTextEncodeLumina2",
+  "CLIPTextEncodePixArtAlpha",
+  "CLIPTextEncodeSD3",
+  "CLIPTextEncodeSDXL",
+  "CLIPTextEncodeSDXLRefiner",
+  "CLIPVisionEncode",
+  "CLIPVisionLoader",
+  "Canny",
+  "CaseConverter",
+  "CheckpointLoader",
+  "CheckpointLoaderSimple",
+  "CheckpointSave",
+  "ChromaRadianceOptions",
+  "ClaudeNode",
+  "ColorToRGBInt",
+  "ColorTransfer",
+  "ComboOptionTestNode",
+  "ComfyAndNode",
+  "ComfyMathExpression",
+  "ComfyNotNode",
+  "ComfyNumberConvert",
+  "ComfyOrNode",
+  "ComfySoftSwitchNode",
+  "ComfySwitchNode",
+  "ConditioningAverage",
+  "ConditioningAverage ",
+  "ConditioningCombine",
+  "ConditioningConcat",
+  "ConditioningMultiply",
+  "ConditioningSetArea",
+  "ConditioningSetAreaPercentage",
+  "ConditioningSetAreaPercentageVideo",
+  "ConditioningSetAreaStrength",
+  "ConditioningSetMask",
+  "ConditioningSetTimestepRange",
+  "ConditioningStableAudio",
+  "ConditioningZeroOut",
+  "ContextWindowsManual",
+  "ControlNetApply",
+  "ControlNetApplyAdvanced",
+  "ControlNetApplySD3",
+  "ControlNetInpaintingAliMamaApply",
+  "ControlNetLoader",
+  "ConvertArrayToString",
+  "ConvertDictionaryToString",
+  "ConvertStringToComboNode",
+  "CosmosImageToVideoLatent",
+  "CosmosPredict2ImageToVideoLatent",
+  "CreateBoundingBoxes",
+  "CreateCameraInfo",
+  "CreateList",
+  "CreateVideo",
+  "CropByBBoxes",
+  "CropMask",
+  "CurveEditor",
+  "CustomCombo",
+  "DA3GeometryToMesh",
+  "DA3GeometryToPointCloud",
+  "DA3Inference",
+  "DA3Render",
+  "DCTestNode",
+  "DiffControlNetLoader",
+  "DifferentialDiffusion",
+  "DiffusersLoader",
+  "DisableNoise",
+  "DrawBBoxes",
+  "DualCFGGuider",
+  "DualCLIPLoader",
+  "DualModelGuider",
+  "EasyCache",
+  "ElevenLabsAudioIsolation",
+  "ElevenLabsInstantVoiceClone",
+  "ElevenLabsSpeechToSpeech",
+  "ElevenLabsSpeechToText",
+  "ElevenLabsTextToDialogue",
+  "ElevenLabsTextToSoundEffects",
+  "ElevenLabsTextToSpeech",
+  "ElevenLabsVoiceSelector",
+  "EmptyARVideoLatent",
+  "EmptyAceStep1.5LatentAudio",
+  "EmptyAceStepLatentAudio",
+  "EmptyAudio",
+  "EmptyChromaRadianceLatentImage",
+  "EmptyCosmosLatentVideo",
+  "EmptyFlux2LatentImage",
+  "EmptyHiDreamO1LatentImage",
+  "EmptyHunyuanImageLatent",
+  "EmptyHunyuanLatentVideo",
+  "EmptyImage",
+  "EmptyLTXVLatentVideo",
+  "EmptyLatentAudio",
+  "EmptyLatentHunyuan3Dv2",
+  "EmptyLatentImage",
+  "EmptyMiniMaxH3LatentAV",
+  "EmptyMochiLatentVideo",
+  "EmptyQwenImageLayeredLatentImage",
+  "EmptySD3LatentImage",
+  "Epsilon Scaling",
+  "ExponentialScheduler",
+  "ExtendIntermediateSigmas",
+  "FeatherMask",
+  "File3DToSplat",
+  "FlipSigmas",
+  "Flux2ImageNode",
+  "Flux2Scheduler",
+  "Flux3ImageToVideoNode",
+  "Flux3TextToVideoNode",
+  "Flux3VideoContinuationNode",
+  "FluxDisableGuidance",
+  "FluxEraseNode",
+  "FluxGuidance",
+  "FluxKVCache",
+  "FluxKontextImageScale",
+  "FluxKontextMultiReferenceLatentMethod",
+  "FluxProExpandNode",
+  "FluxProFillNode",
+  "FluxProUltraImageNode",
+  "FluxVTONode",
+  "FrameInterpolate",
+  "FrameInterpolationModelLoader",
+  "FreSca",
+  "FreeU",
+  "FreeU_V2",
+  "GITSScheduler",
+  "GLIGENLoader",
+  "GLIGENTextBoxApply",
+  "GLSLShader",
+  "GeminiImage2Node",
+  "GeminiImageNode",
+  "GeminiInputFiles",
+  "GeminiNanoBanana2",
+  "GeminiNanoBanana2V2",
+  "GeminiNode",
+  "GeminiNodeV2",
+  "GeminiVideoOmni",
+  "GenerateTracks",
+  "GetICLoRAParameters",
+  "GetImageSize",
+  "GetSplatCount",
+  "GetVideoComponents",
+  "GrokImageEditNode",
+  "GrokImageEditNodeV2",
+  "GrokImageNode",
+  "GrokVideoEditNode",
+  "GrokVideoExtendNode",
+  "GrokVideoNode",
+  "GrokVideoReferenceNode",
+  "GrowMask",
+  "HappyHorseImageToVideoApi",
+  "HappyHorseReferenceVideoApi",
+  "HappyHorseTextToVideoApi",
+  "HappyHorseVideoEditApi",
+  "HeyGenAvatarVideoNode",
+  "HeyGenCreateAvatarNode",
+  "HeyGenTalkingPhotoNode",
+  "HeyGenTextToSpeechNode",
+  "HeyGenVideoTranslateNode",
+  "HiDreamO1PatchSeamSmoothing",
+  "HiDreamO1ReferenceImages",
+  "HitPawGeneralImageEnhance",
+  "HitPawVideoEnhance",
+  "Hunyuan3Dv2Conditioning",
+  "Hunyuan3Dv2ConditioningMultiView",
+  "HunyuanImageToVideo",
+  "HunyuanRefinerLatent",
+  "HunyuanVideo15ImageToVideo",
+  "HunyuanVideo15LatentUpscaleWithModel",
+  "HunyuanVideo15SuperResolution",
+  "HyperTile",
+  "HypernetworkLoader",
+  "Ideogram4Scheduler",
+  "IdeogramPImage",
+  "IdeogramV3",
+  "IdeogramV4",
+  "ImageAddNoise",
+  "ImageBatch",
+  "ImageBlend",
+  "ImageBlur",
+  "ImageColorToMask",
+  "ImageCompare",
+  "ImageCompositeMasked",
+  "ImageCrop",
+  "ImageCropV2",
+  "ImageFlip",
+  "ImageFromBatch",
+  "ImageHistogram",
+  "ImageInvert",
+  "ImageMergeTileList",
+  "ImageOnlyCheckpointLoader",
+  "ImageOnlyCheckpointSave",
+  "ImagePadForOutpaint",
+  "ImageQuantize",
+  "ImageRGBToYUV",
+  "ImageRotate",
+  "ImageScale",
+  "ImageScaleBy",
+  "ImageScaleToMaxDimension",
+  "ImageScaleToTotalPixels",
+  "ImageSharpen",
+  "ImageStitch",
+  "ImageToMask",
+  "ImageUpscaleWithModel",
+  "ImageYUVToRGB",
+  "InpaintModelConditioning",
+  "InstructPixToPixConditioning",
+  "InvertBooleanNode",
+  "InvertMask",
+  "JoinAudioChannels",
+  "JoinImageWithAlpha",
+  "JsonExtractString",
+  "KSampler",
+  "KSamplerAdvanced",
+  "KSamplerSelect",
+  "Kandinsky5ImageToVideo",
+  "KarrasScheduler",
+  "KlingAvatarNode",
+  "KlingFirstLastFrameNode",
+  "KlingImage2VideoNode",
+  "KlingImageGenerationNode",
+  "KlingImageToVideoWithAudio",
+  "KlingLipSyncAudioToVideoNode",
+  "KlingLipSyncTextToVideoNode",
+  "KlingMotionControl",
+  "KlingOmniProEditVideoNode",
+  "KlingOmniProFirstLastFrameNode",
+  "KlingOmniProImageNode",
+  "KlingOmniProImageToVideoNode",
+  "KlingOmniProTextToVideoNode",
+  "KlingOmniProVideoToVideoNode",
+  "KlingStartEndFrameNode",
+  "KlingTextToVideoNode",
+  "KlingTextToVideoWithAudio",
+  "KlingVideoExtendNode",
+  "KlingVideoNode",
+  "Krea2ImageNode",
+  "Krea2StyleReferenceNode",
+  "LTXAVTextEncoderLoader",
+  "LTXVAddGuide",
+  "LTXVAudioVAEDecode",
+  "LTXVAudioVAEEncode",
+  "LTXVAudioVAELoader",
+  "LTXVConcatAVLatent",
+  "LTXVConditioning",
+  "LTXVCropGuides",
+  "LTXVEmptyLatentAudio",
+  "LTXVImgToVideo",
+  "LTXVImgToVideoInplace",
+  "LTXVLatentUpsampler",
+  "LTXVPreprocess",
+  "LTXVReferenceAudio",
+  "LTXVScheduler",
+  "LTXVSeparateAVLatent",
+  "LaplaceScheduler",
+  "LatentAdd",
+  "LatentApplyOperation",
+  "LatentApplyOperationCFG",
+  "LatentBatch",
+  "LatentBatchSeedBehavior",
+  "LatentBlend",
+  "LatentComposite",
+  "LatentCompositeMasked",
+  "LatentConcat",
+  "LatentCrop",
+  "LatentCut",
+  "LatentCutToBatch",
+  "LatentFlip",
+  "LatentFromBatch",
+  "LatentInterpolate",
+  "LatentMultiply",
+  "LatentOperationSharpen",
+  "LatentOperationTonemapReinhard",
+  "LatentRotate",
+  "LatentSubtract",
+  "LatentUpscale",
+  "LatentUpscaleBy",
+  "LatentUpscaleModelLoader",
+  "LazyCache",
+  "Load3D",
+  "Load3DAdvanced",
+  "LoadAudio",
+  "LoadBackgroundRemovalModel",
+  "LoadDA3Model",
+  "LoadImage",
+  "LoadImageDataSetFromFolder",
+  "LoadImageMask",
+  "LoadImageOutput",
+  "LoadImageTextDataSetFromFolder",
+  "LoadLatent",
+  "LoadMediaPipeFaceLandmarker",
+  "LoadMoGeModel",
+  "LoadTrainingDataset",
+  "LoadVideo",
+  "LoadVideoDataSetFromFolder",
+  "LoadVideoTextDataSetFromFolder",
+  "LoraLoader",
+  "LoraLoaderBypass",
+  "LoraLoaderBypassModelOnly",
+  "LoraLoaderModelOnly",
+  "LoraModelLoader",
+  "LoraSave",
+  "LossGraphNode",
+  "LotusConditioning",
+  "LtxvApiImageToVideo",
+  "LtxvApiTextToVideo",
+  "LumaConceptsNode",
+  "LumaImageEditNode2",
+  "LumaImageModifyNode",
+  "LumaImageNode",
+  "LumaImageNode2",
+  "LumaImageToVideoNode",
+  "LumaRay32ExtendVideoNode",
+  "LumaRay32ImageToVideoNode",
+  "LumaRay32KeyframeNode",
+  "LumaRay32KeyframesToVideoNode",
+  "LumaRay32TextToVideoNode",
+  "LumaRay32VideoEditNode",
+  "LumaRay32VideoReframeNode",
+  "LumaReferenceNode",
+  "LumaVideoNode",
+  "MagnificImageRelightNode",
+  "MagnificImageSkinEnhancerNode",
+  "MagnificImageStyleTransferNode",
+  "MagnificImageUpscalerCreativeNode",
+  "MagnificImageUpscalerPreciseV2Node",
+  "Mahiro",
+  "MakeTrainingDataset",
+  "ManualSigmas",
+  "MaskComposite",
+  "MaskPreview",
+  "MaskToImage",
+  "MediaPipeFaceLandmarker",
+  "MediaPipeFaceMask",
+  "MediaPipeFaceMeshVisualize",
+  "MergeSplat",
+  "MeshyAnimateModelNode",
+  "MeshyImageToModelNode",
+  "MeshyMultiImageToModelNode",
+  "MeshyRefineNode",
+  "MeshyRigModelNode",
+  "MeshyTextToModelNode",
+  "MeshyTextureNode",
+  "MiniMaxH3ImageToVideo",
+  "MiniMaxH3ReferenceToVideo",
+  "MiniMaxH3SigmaShift",
+  "MinimaxHailuo03FirstLastFrameNode",
+  "MinimaxHailuo03ReferenceNode",
+  "MinimaxHailuo03TextToVideoNode",
+  "MinimaxHailuoVideoNode",
+  "MinimaxImageToVideoNode",
+  "MinimaxSubjectToVideoNode",
+  "MinimaxTextToVideoNode",
+  "MoGeInference",
+  "MoGePanoramaInference",
+  "MoGePointMapToMesh",
+  "MoGeRender",
+  "ModelComputeDtype",
+  "ModelMergeAdd",
+  "ModelMergeAuraflow",
+  "ModelMergeBlocks",
+  "ModelMergeCosmos14B",
+  "ModelMergeCosmos7B",
+  "ModelMergeCosmosPredict2_14B",
+  "ModelMergeCosmosPredict2_2B",
+  "ModelMergeFlux1",
+  "ModelMergeKrea2",
+  "ModelMergeLTXV",
+  "ModelMergeMochiPreview",
+  "ModelMergeQwenImage",
+  "ModelMergeSD1",
+  "ModelMergeSD2",
+  "ModelMergeSD35_Large",
+  "ModelMergeSD3_2B",
+  "ModelMergeSDXL",
+  "ModelMergeSimple",
+  "ModelMergeSubtract",
+  "ModelMergeWAN2_1",
+  "ModelNoiseScale",
+  "ModelPatchLoader",
+  "ModelSamplingAuraFlow",
+  "ModelSamplingContinuousEDM",
+  "ModelSamplingContinuousV",
+  "ModelSamplingDiscrete",
+  "ModelSamplingFlux",
+  "ModelSamplingLTXV",
+  "ModelSamplingSD3",
+  "ModelSamplingStableCascade",
+  "ModelSave",
+  "Morphology",
+  "MultiGPU_Options",
+  "MultiGPU_WorkUnits",
+  "NAGuidance",
+  "NormalizeVideoLatentStart",
+  "OpenAIChatConfig",
+  "OpenAIChatNode",
+  "OpenAIDalle2",
+  "OpenAIDalle3",
+  "OpenAIGPTImage1",
+  "OpenAIGPTImageNodeV2",
+  "OpenAIInputFiles",
+  "OpenAIVideoSora2",
+  "OpenRouterLLMNode",
+  "OpticalFlowLoader",
+  "OptimalStepsScheduler",
+  "Painter",
+  "PatchModelAddDownscale",
+  "PerpNeg",
+  "PerpNegGuider",
+  "PerturbedAttentionGuidance",
+  "PhotoMakerEncode",
+  "PhotoMakerLoader",
+  "PiDConditioning",
+  "PixverseImageToVideoNode",
+  "PixverseTemplateNode",
+  "PixverseTextToVideoNode",
+  "PixverseTransitionVideoNode",
+  "PolyexponentialScheduler",
+  "PorterDuffImageComposite",
+  "Preview3D",
+  "Preview3DAdvanced",
+  "PreviewAny",
+  "PreviewAudio",
+  "PreviewGaussianSplat",
+  "PreviewImage",
+  "PreviewPointCloud",
+  "PrimitiveBoolean",
+  "PrimitiveBoundingBox",
+  "PrimitiveFloat",
+  "PrimitiveInt",
+  "PrimitiveString",
+  "PrimitiveStringMultiline",
+  "QuadrupleCLIPLoader",
+  "QuiverImageToSVGNode",
+  "QuiverTextToSVGNode",
+  "QwenImageDiffsynthControlnet",
+  "RTDETR_detect",
+  "RandomNoise",
+  "RebatchImages",
+  "RebatchLatents",
+  "RecordAudio",
+  "RecraftColorRGB",
+  "RecraftControls",
+  "RecraftCreateStyleNode",
+  "RecraftCreativeUpscaleNode",
+  "RecraftCrispUpscaleNode",
+  "RecraftImageInpaintingNode",
+  "RecraftImageToImageNode",
+  "RecraftRemoveBackgroundNode",
+  "RecraftReplaceBackgroundNode",
+  "RecraftStyleV3DigitalIllustration",
+  "RecraftStyleV3InfiniteStyleLibrary",
+  "RecraftStyleV3LogoRaster",
+  "RecraftStyleV3RealisticImage",
+  "RecraftStyleV3VectorIllustrationNode",
+  "RecraftTextToImageNode",
+  "RecraftTextToVectorNode",
+  "RecraftV4TextToImageNode",
+  "RecraftV4TextToVectorNode",
+  "RecraftVectorizeImageNode",
+  "ReferenceLatent",
+  "ReferenceTimbreAudio",
+  "RegexExtract",
+  "RegexMatch",
+  "RegexReplace",
+  "RemoveBackground",
+  "RenderSplat",
+  "RenormCFG",
+  "RepeatImageBatch",
+  "RepeatLatentBatch",
+  "ReplaceVideoLatentFrames",
+  "RescaleCFG",
+  "ResizeAndPadImage",
+  "ResizeImageMaskNode",
+  "ResolutionBucket",
+  "ResolutionSelector",
+  "ReveImageCreateNode",
+  "ReveImageEditNode",
+  "ReveImageRemixNode",
+  "Rodin3D_Detail",
+  "Rodin3D_Gen2",
+  "Rodin3D_Gen25_Image",
+  "Rodin3D_Gen25_Text",
+  "Rodin3D_Regular",
+  "Rodin3D_Sketch",
+  "Rodin3D_Smooth",
+  "RunwayAleph2KeyframeNode",
+  "RunwayAleph2PromptImageNode",
+  "RunwayAleph2VideoToVideoNode",
+  "RunwayFirstLastFrameNode",
+  "RunwayImageToVideoNodeGen3a",
+  "RunwayImageToVideoNodeGen4",
+  "RunwayTextToImageNode",
+  "SAM3_Detect",
+  "SAM3_TrackPreview",
+  "SAM3_TrackToMask",
+  "SAM3_VideoTrack",
+  "SCAIL2ColoredMask",
+  "SDPoseDrawKeypoints",
+  "SDPoseFaceBBoxes",
+  "SDPoseKeypointExtractor",
+  "SDTurboScheduler",
+  "SD_4XUpscale_Conditioning",
+  "SUPIRApply",
+  "SV3D_Conditioning",
+  "SVD_img2vid_Conditioning",
+  "SamplerARVideo",
+  "SamplerCustom",
+  "SamplerCustomAdvanced",
+  "SamplerDPMAdaptative",
+  "SamplerDPMPP_2M_SDE",
+  "SamplerDPMPP_2S_Ancestral",
+  "SamplerDPMPP_3M_SDE",
+  "SamplerDPMPP_SDE",
+  "SamplerER_SDE",
+  "SamplerEulerAncestral",
+  "SamplerEulerAncestralCFGPP",
+  "SamplerEulerCFGpp",
+  "SamplerLCM",
+  "SamplerLCMUpscale",
+  "SamplerLMS",
+  "SamplerSASolver",
+  "SamplerSEEDS2",
+  "SamplingPercentToSigma",
+  "Save3DAdvanced",
+  "SaveAnimatedPNG",
+  "SaveAnimatedWEBP",
+  "SaveAudio",
+  "SaveAudioAdvanced",
+  "SaveAudioMP3",
+  "SaveAudioOpus",
+  "SaveGLB",
+  "SaveGaussianSplat",
+  "SaveImage",
+  "SaveImageAdvanced",
+  "SaveImageDataSetToFolder",
+  "SaveImageTextDataSetToFolder",
+  "SaveLatent",
+  "SaveLoRA",
+  "SavePointCloud",
+  "SaveSVGNode",
+  "SaveText",
+  "SaveTrainingDataset",
+  "SaveVideo",
+  "SaveWEBM",
+  "ScaleROPE",
+  "SeedNode",
+  "SeedVR2Conditioning",
+  "SeedVR2PostProcessing",
+  "SeedVR2Preprocess",
+  "SeedVR2TemporalChunk",
+  "SeedVR2TemporalMerge",
+  "SelectCLIPDevice",
+  "SelectModelDevice",
+  "SelectVAEDevice",
+  "SelfAttentionGuidance",
+  "SetFirstSigma",
+  "SetLatentNoiseMask",
+  "SetUnionControlNetType",
+  "ShuffleImageTextDataset",
+  "ShuffleVideoDataset",
+  "ShuffleVideoTextDataset",
+  "SkipLayerGuidanceDiT",
+  "SkipLayerGuidanceDiTSimple",
+  "SkipLayerGuidanceSD3",
+  "SolidMask",
+  "SoniloTextToMusic",
+  "SoniloVideoToMusic",
+  "SplatToFile3D",
+  "SplatToMesh",
+  "SplitAudioChannels",
+  "SplitImageToTileList",
+  "SplitImageWithAlpha",
+  "SplitSigmas",
+  "SplitSigmasDenoise",
+  "StableCascade_EmptyLatentImage",
+  "StableCascade_StageB_Conditioning",
+  "StableCascade_StageC_VAEEncode",
+  "StableCascade_SuperResolutionControlnet",
+  "StableZero123_Conditioning",
+  "StableZero123_Conditioning_Batched",
+  "StringCompare",
+  "StringConcatenate",
+  "StringContains",
+  "StringFormat",
+  "StringLength",
+  "StringReplace",
+  "StringSubstring",
+  "StringTrim",
+  "StyleModelApply",
+  "StyleModelLoader",
+  "SyncLipSyncNode",
+  "SyncTalkingImageNode",
+  "T5TokenizerOptions",
+  "TCFG",
+  "TemporalScoreRescaling",
+  "Tencent3DPartNode",
+  "Tencent3DTextureEditNode",
+  "TencentImageToModelNode",
+  "TencentModelTo3DUVNode",
+  "TencentSmartTopologyNode",
+  "TencentTextToModelNode",
+  "TextEncodeAceStepAudio",
+  "TextEncodeAceStepAudio1.5",
+  "TextEncodeBooguEdit",
+  "TextEncodeHunyuanVideo_ImageToVideo",
+  "TextEncodeJoyImageEdit",
+  "TextEncodeMageFlowEdit",
+  "TextEncodeQwenImageEdit",
+  "TextEncodeQwenImageEditPlus",
+  "TextEncodeZImageOmni",
+  "TextGenerate",
+  "TextGenerateLTX2Prompt",
+  "TextOverlay",
+  "ThresholdMask",
+  "TomePatchModel",
+  "TopazImageEnhance",
+  "TopazImageEnhanceV2",
+  "TopazVideoEnhance",
+  "TopazVideoEnhanceV2",
+  "TorchCompileModel",
+  "TrainLoraNode",
+  "TransformSplat",
+  "TrimAudioDuration",
+  "TrimVideoLatent",
+  "TripleCLIPLoader",
+  "TripoConversionNode",
+  "TripoImageToModelNode",
+  "TripoImportModelNode",
+  "TripoMultiviewToModelNode",
+  "TripoP1ImageToModelNode",
+  "TripoP1MultiviewToModelNode",
+  "TripoP1TextToModelNode",
+  "TripoRefineNode",
+  "TripoRetargetNode",
+  "TripoRigNode",
+  "TripoSplatConditioning",
+  "TripoSplatPreprocessImage",
+  "TripoSplatSamplingPreview",
+  "TripoTextToModelNode",
+  "TripoTextureNode",
+  "UNETLoader",
+  "UNetCrossAttentionMultiply",
+  "UNetSelfAttentionMultiply",
+  "UNetTemporalAttentionMultiply",
+  "USOStyleReference",
+  "UpscaleModelLoader",
+  "VAEDecode",
+  "VAEDecodeAudio",
+  "VAEDecodeAudioTiled",
+  "VAEDecodeHunyuan3D",
+  "VAEDecodeTiled",
+  "VAEDecodeTripoSplat",
+  "VAEEncode",
+  "VAEEncodeAudio",
+  "VAEEncodeForInpaint",
+  "VAEEncodeTiled",
+  "VAELoader",
+  "VAESave",
+  "VOIDInpaintConditioning",
+  "VOIDQuadmaskPreprocess",
+  "VOIDSampler",
+  "VOIDWarpedNoise",
+  "VOIDWarpedNoiseSource",
+  "VPScheduler",
+  "Veo3FirstLastFrameNode",
+  "Veo3VideoGenerationNode",
+  "VeoVideoGenerationNode",
+  "Video Slice",
+  "VideoFrameSample",
+  "VideoLinearCFGGuidance",
+  "VideoRandomTemporalCrop",
+  "VideoTemporalCrop",
+  "VideoTriangleCFGGuidance",
+  "Vidu2ImageToVideoNode",
+  "Vidu2ReferenceVideoNode",
+  "Vidu2StartEndToVideoNode",
+  "Vidu2TextToVideoNode",
+  "Vidu3ImageToVideoNode",
+  "Vidu3StartEndToVideoNode",
+  "Vidu3TextToVideoNode",
+  "ViduExtendVideoNode",
+  "ViduImageToVideoNode",
+  "ViduMultiFrameVideoNode",
+  "ViduReferenceVideoNode",
+  "ViduStartEndToVideoNode",
+  "ViduTextToVideoNode",
+  "VoxelToMesh",
+  "VoxelToMeshBasic",
+  "Wan22FunControlToVideo",
+  "Wan22ImageToVideoLatent",
+  "Wan2ImageToVideoApi",
+  "Wan2ReferenceVideoApi",
+  "Wan2TextToVideoApi",
+  "Wan2VideoContinuationApi",
+  "Wan2VideoEditApi",
+  "WanAnimateToVideo",
+  "WanCameraEmbedding",
+  "WanCameraImageToVideo",
+  "WanDancerEncodeAudio",
+  "WanDancerPadKeyframes",
+  "WanDancerPadKeyframesList",
+  "WanDancerVideo",
+  "WanFirstLastFrameToVideo",
+  "WanFunControlToVideo",
+  "WanFunInpaintToVideo",
+  "WanHuMoImageToVideo",
+  "WanImageToImageApi",
+  "WanImageToVideo",
+  "WanImageToVideoApi",
+  "WanInfiniteTalkToVideo",
+  "WanMoveConcatTrack",
+  "WanMoveTrackToVideo",
+  "WanMoveTracksFromCoords",
+  "WanMoveVisualizeTracks",
+  "WanPhantomSubjectToVideo",
+  "WanReferenceVideoApi",
+  "WanSCAILToVideo",
+  "WanSoundImageToVideo",
+  "WanSoundImageToVideoExtend",
+  "WanTextToImageApi",
+  "WanTextToVideoApi",
+  "WanTrackToVideo",
+  "WanUni3CControlnetApply",
+  "WanVaceToVideo",
+  "WavespeedFlashVSRNode",
+  "WavespeedImageUpscaleNode",
+  "WebcamCapture",
+  "ZImageFunControlnet",
+  "unCLIPCheckpointLoader",
+  "unCLIPConditioning",
+  "wanBlockSwap"
+ ],
+ "hidden_prompt_class_types": [
+  "CLIPSave",
+  "CheckpointSave",
+  "ImageOnlyCheckpointSave",
+  "LossGraphNode",
+  "MaskPreview",
+  "ModelSave",
+  "PreviewAudio",
+  "PreviewImage",
+  "SaveAnimatedPNG",
+  "SaveAnimatedWEBP",
+  "SaveAudio",
+  "SaveAudioAdvanced",
+  "SaveAudioMP3",
+  "SaveAudioOpus",
+  "SaveGLB",
+  "SaveImage",
+  "SaveImageAdvanced",
+  "SaveLatent",
+  "SaveSVGNode",
+  "SaveVideo",
+  "SaveWEBM",
+  "VAESave"
+ ],
+ "inputs": {
+  "APG": [
+   "model",
+   "eta",
+   "norm_threshold",
+   "momentum"
+  ],
+  "ARVideoI2V": [
+   "model",
+   "vae",
+   "start_image",
+   "width",
+   "height",
+   "length",
+   "batch_size"
+  ],
+  "AddNoise": [
+   "model",
+   "noise",
+   "sigmas",
+   "latent_image"
+  ],
+  "AlignYourStepsScheduler": [
+   "model_type",
+   "steps",
+   "denoise"
+  ],
+  "AnimaLLLiteApply": [
+   "model",
+   "model_patch",
+   "image",
+   "strength",
+   "start_percent",
+   "end_percent",
+   "mask"
+  ],
+  "AudioAdjustVolume": [
+   "audio",
+   "volume"
+  ],
+  "AudioConcat": [
+   "audio1",
+   "audio2",
+   "direction"
+  ],
+  "AudioEncoderEncode": [
+   "audio_encoder",
+   "audio"
+  ],
+  "AudioEncoderLoader": [
+   "audio_encoder_name"
+  ],
+  "AudioEqualizer3Band": [
+   "audio",
+   "low_gain_dB",
+   "low_freq",
+   "mid_gain_dB",
+   "mid_freq",
+   "mid_q",
+   "high_gain_dB",
+   "high_freq"
+  ],
+  "AudioMerge": [
+   "audio1",
+   "audio2",
+   "merge_method"
+  ],
+  "AutogrowNamesTestNode": [
+   "autogrow"
+  ],
+  "AutogrowPrefixTestNode": [
+   "autogrow"
+  ],
+  "BasicGuider": [
+   "model",
+   "conditioning"
+  ],
+  "BasicScheduler": [
+   "model",
+   "scheduler",
+   "steps",
+   "denoise"
+  ],
+  "BatchImagesMasksLatentsNode": [
+   "inputs"
+  ],
+  "BatchImagesNode": [
+   "images"
+  ],
+  "BatchLatentsNode": [
+   "latents"
+  ],
+  "BatchMasksNode": [
+   "masks"
+  ],
+  "BeebleSwitchXImageEdit": [
+   "image"
+  ],
+  "BeebleSwitchXVideoEdit": [
+   "video"
+  ],
+  "BerniniConditioning": [
+   "positive",
+   "negative",
+   "vae",
+   "width",
+   "height",
+   "length",
+   "batch_size",
+   "source_video",
+   "reference_video",
+   "reference_images",
+   "ref_max_size",
+   "reference_image"
+  ],
+  "BetaSamplingScheduler": [
+   "model",
+   "steps",
+   "alpha",
+   "beta"
+  ],
+  "BriaImageEditNode": [
+   "model",
+   "image",
+   "prompt",
+   "negative_prompt",
+   "structured_prompt",
+   "seed",
+   "guidance_scale",
+   "steps",
+   "moderation",
+   "mask",
+   "prompt_content_moderation",
+   "visual_input_moderation",
+   "visual_output_moderation"
+  ],
+  "BriaRemoveImageBackground": [
+   "image",
+   "moderation",
+   "seed",
+   "visual_input_moderation",
+   "visual_output_moderation"
+  ],
+  "BriaRemoveVideoBackground": [
+   "video",
+   "background_color",
+   "seed"
+  ],
+  "BriaTransparentVideoBackground": [
+   "video",
+   "seed"
+  ],
+  "BriaVideoGreenScreen": [
+   "video",
+   "green_shade",
+   "seed"
+  ],
+  "BriaVideoReplaceBackground": [
+   "video",
+   "background_image",
+   "background_video",
+   "seed"
+  ],
+  "BuildJsonPromptIdeogram": [
+   "element",
+   "high_level_description",
+   "background",
+   "style",
+   "aesthetics",
+   "lighting",
+   "medium",
+   "photo",
+   "art_style"
+  ],
+  "ByteDance2FirstLastFrameNode": [
+   "model",
+   "first_frame",
+   "last_frame",
+   "first_frame_asset_id",
+   "last_frame_asset_id",
+   "seed",
+   "watermark"
+  ],
+  "ByteDance2ReferenceNode": [
+   "model",
+   "seed",
+   "watermark"
+  ],
+  "ByteDance2TextToVideoNode": [
+   "model",
+   "seed",
+   "watermark"
+  ],
+  "ByteDanceCreateImageAsset": [
+   "image",
+   "group_id"
+  ],
+  "ByteDanceCreateVideoAsset": [
+   "video",
+   "group_id"
+  ],
+  "ByteDanceFirstLastFrameNode": [
+   "model",
+   "prompt",
+   "first_frame",
+   "last_frame",
+   "resolution",
+   "aspect_ratio",
+   "duration",
+   "seed",
+   "camera_fixed",
+   "watermark",
+   "generate_audio"
+  ],
+  "ByteDanceImageNode": [
+   "model",
+   "prompt",
+   "size_preset",
+   "width",
+   "height",
+   "seed",
+   "guidance_scale",
+   "watermark"
+  ],
+  "ByteDanceImageReferenceNode": [
+   "model",
+   "prompt",
+   "images",
+   "resolution",
+   "aspect_ratio",
+   "duration",
+   "seed",
+   "watermark"
+  ],
+  "ByteDanceImageToVideoNode": [
+   "model",
+   "prompt",
+   "image",
+   "resolution",
+   "aspect_ratio",
+   "duration",
+   "seed",
+   "camera_fixed",
+   "watermark",
+   "generate_audio"
+  ],
+  "ByteDanceSeedAudio": [
+   "text_prompt",
+   "reference_mode",
+   "sample_rate",
+   "speech_rate",
+   "loudness_rate",
+   "pitch_rate",
+   "seed",
+   "model",
+   "reference_audio_1",
+   "reference_audio_2",
+   "reference_audio_3",
+   "reference_image",
+   "preset_voice"
+  ],
+  "ByteDanceSeedNode": [
+   "prompt",
+   "model",
+   "seed",
+   "system_prompt"
+  ],
+  "ByteDanceSeedreamNode": [
+   "model",
+   "prompt",
+   "image",
+   "size_preset",
+   "width",
+   "height",
+   "sequential_image_generation",
+   "max_images",
+   "seed",
+   "watermark",
+   "fail_on_partial"
+  ],
+  "ByteDanceSeedreamNodeV2": [
+   "prompt",
+   "model",
+   "seed",
+   "watermark",
+   "thinking"
+  ],
+  "ByteDanceTextToVideoNode": [
+   "model",
+   "prompt",
+   "resolution",
+   "aspect_ratio",
+   "duration",
+   "seed",
+   "camera_fixed",
+   "watermark",
+   "generate_audio"
+  ],
+  "CFGGuider": [
+   "model",
+   "positive",
+   "negative",
+   "cfg"
+  ],
+  "CFGNorm": [
+   "model",
+   "strength",
+   "pre_cfg"
+  ],
+  "CFGOverride": [
+   "model",
+   "cfg",
+   "start_percent",
+   "end_percent"
+  ],
+  "CFGZeroStar": [
+   "model"
+  ],
+  "CLIPAttentionMultiply": [
+   "clip",
+   "q",
+   "k",
+   "v",
+   "out"
+  ],
+  "CLIPLoader": [
+   "clip_name",
+   "type",
+   "device"
+  ],
+  "CLIPMergeAdd": [
+   "clip1",
+   "clip2"
+  ],
+  "CLIPMergeSimple": [
+   "clip1",
+   "clip2",
+   "ratio"
+  ],
+  "CLIPMergeSubtract": [
+   "clip1",
+   "clip2",
+   "multiplier"
+  ],
+  "CLIPSave": [
+   "clip",
+   "filename_prefix"
+  ],
+  "CLIPSetLastLayer": [
+   "clip",
+   "stop_at_clip_layer"
+  ],
+  "CLIPTextEncode": [
+   "text",
+   "clip"
+  ],
+  "CLIPTextEncodeControlnet": [
+   "clip",
+   "conditioning",
+   "text"
+  ],
+  "CLIPTextEncodeFlux": [
+   "clip",
+   "clip_l",
+   "t5xxl",
+   "guidance"
+  ],
+  "CLIPTextEncodeHiDream": [
+   "clip",
+   "clip_l",
+   "clip_g",
+   "t5xxl",
+   "llama"
+  ],
+  "CLIPTextEncodeHunyuanDiT": [
+   "clip",
+   "bert",
+   "mt5xl"
+  ],
+  "CLIPTextEncodeKandinsky5": [
+   "clip",
+   "clip_l",
+   "qwen25_7b"
+  ],
+  "CLIPTextEncodeLumina2": [
+   "system_prompt",
+   "user_prompt",
+   "clip"
+  ],
+  "CLIPTextEncodePixArtAlpha": [
+   "width",
+   "height",
+   "text",
+   "clip"
+  ],
+  "CLIPTextEncodeSD3": [
+   "clip",
+   "clip_l",
+   "clip_g",
+   "t5xxl",
+   "empty_padding"
+  ],
+  "CLIPTextEncodeSDXL": [
+   "clip",
+   "width",
+   "height",
+   "crop_w",
+   "crop_h",
+   "target_width",
+   "target_height",
+   "text_g",
+   "text_l"
+  ],
+  "CLIPTextEncodeSDXLRefiner": [
+   "ascore",
+   "width",
+   "height",
+   "text",
+   "clip"
+  ],
+  "CLIPVisionEncode": [
+   "clip_vision",
+   "image",
+   "crop"
+  ],
+  "CLIPVisionLoader": [
+   "clip_name"
+  ],
+  "Canny": [
+   "image",
+   "low_threshold",
+   "high_threshold"
+  ],
+  "CaseConverter": [
+   "string",
+   "mode"
+  ],
+  "CheckpointLoader": [
+   "config_name",
+   "ckpt_name"
+  ],
+  "CheckpointLoaderSimple": [
+   "ckpt_name"
+  ],
+  "CheckpointSave": [
+   "model",
+   "clip",
+   "vae",
+   "filename_prefix"
+  ],
+  "ClaudeNode": [
+   "prompt",
+   "model",
+   "seed",
+   "images",
+   "system_prompt",
+   "image"
+  ],
+  "ColorToRGBInt": [
+   "color"
+  ],
+  "ColorTransfer": [
+   "image_target",
+   "image_ref",
+   "method",
+   "source_stats",
+   "strength",
+   "target_index"
+  ],
+  "ComboOptionTestNode": [
+   "combo",
+   "combo2"
+  ],
+  "ComfyAndNode": [
+   "values"
+  ],
+  "ComfyMathExpression": [
+   "expression",
+   "values"
+  ],
+  "ComfyNotNode": [
+   "value"
+  ],
+  "ComfyNumberConvert": [
+   "value"
+  ],
+  "ComfyOrNode": [
+   "values"
+  ],
+  "ComfySoftSwitchNode": [
+   "switch",
+   "on_false",
+   "on_true"
+  ],
+  "ComfySwitchNode": [
+   "switch",
+   "on_false",
+   "on_true"
+  ],
+  "ConditioningAverage": [
+   "conditioning_to",
+   "conditioning_from",
+   "conditioning_to_strength"
+  ],
+  "ConditioningCombine": [
+   "conditioning_1",
+   "conditioning_2"
+  ],
+  "ConditioningConcat": [
+   "conditioning_to",
+   "conditioning_from"
+  ],
+  "ConditioningMultiply": [
+   "conditioning",
+   "multiplier"
+  ],
+  "ConditioningSetArea": [
+   "conditioning",
+   "width",
+   "height",
+   "x",
+   "y",
+   "strength"
+  ],
+  "ConditioningSetAreaPercentage": [
+   "conditioning",
+   "width",
+   "height",
+   "x",
+   "y",
+   "strength"
+  ],
+  "ConditioningSetAreaPercentageVideo": [
+   "conditioning",
+   "width",
+   "height",
+   "temporal",
+   "x",
+   "y",
+   "z",
+   "strength"
+  ],
+  "ConditioningSetAreaStrength": [
+   "conditioning",
+   "strength"
+  ],
+  "ConditioningSetMask": [
+   "conditioning",
+   "mask",
+   "strength",
+   "set_cond_area"
+  ],
+  "ConditioningSetTimestepRange": [
+   "conditioning",
+   "start",
+   "end"
+  ],
+  "ConditioningStableAudio": [
+   "positive",
+   "negative",
+   "seconds_start",
+   "seconds_total"
+  ],
+  "ConditioningZeroOut": [
+   "conditioning"
+  ],
+  "ContextWindowsManual": [
+   "model",
+   "context_length",
+   "context_overlap",
+   "context_schedule",
+   "context_stride",
+   "closed_loop",
+   "fuse_method",
+   "dim",
+   "freenoise",
+   "cond_retain_index_list",
+   "split_conds_to_windows",
+   "latent_retain_index_list",
+   "causal_window_fix"
+  ],
+  "ControlNetApply": [
+   "conditioning",
+   "control_net",
+   "image",
+   "strength"
+  ],
+  "ControlNetApplyAdvanced": [
+   "positive",
+   "negative",
+   "control_net",
+   "image",
+   "strength",
+   "start_percent",
+   "end_percent",
+   "vae"
+  ],
+  "ControlNetApplySD3": [
+   "positive",
+   "negative",
+   "control_net",
+   "vae",
+   "image",
+   "strength",
+   "start_percent",
+   "end_percent"
+  ],
+  "ControlNetInpaintingAliMamaApply": [
+   "positive",
+   "negative",
+   "control_net",
+   "vae",
+   "image",
+   "mask",
+   "strength",
+   "start_percent",
+   "end_percent"
+  ],
+  "ControlNetLoader": [
+   "control_net_name"
+  ],
+  "ConvertArrayToString": [
+   "array",
+   "indent"
+  ],
+  "ConvertDictionaryToString": [
+   "dictionary",
+   "indent"
+  ],
+  "ConvertStringToComboNode": [
+   "string"
+  ],
+  "CosmosImageToVideoLatent": [
+   "vae",
+   "width",
+   "height",
+   "length",
+   "batch_size",
+   "start_image",
+   "end_image"
+  ],
+  "CosmosPredict2ImageToVideoLatent": [
+   "vae",
+   "width",
+   "height",
+   "length",
+   "batch_size",
+   "start_image",
+   "end_image"
+  ],
+  "CreateBoundingBoxes": [
+   "background",
+   "bboxes",
+   "width",
+   "height",
+   "last_incoming"
+  ],
+  "CreateCameraInfo": [
+   "mode",
+   "target_x",
+   "target_y",
+   "target_z",
+   "roll",
+   "fov",
+   "zoom",
+   "camera_type",
+   "yaw",
+   "pitch",
+   "distance",
+   "position_x",
+   "position_y",
+   "position_z",
+   "position_x",
+   "position_y",
+   "position_z",
+   "quat_x",
+   "quat_y",
+   "quat_z",
+   "quat_w"
+  ],
+  "CreateList": [
+   "inputs"
+  ],
+  "CreateVideo": [
+   "images",
+   "fps",
+   "audio",
+   "bit_depth"
+  ],
+  "CropByBBoxes": [
+   "image",
+   "bboxes",
+   "output_width",
+   "output_height",
+   "padding",
+   "keep_aspect"
+  ],
+  "CropMask": [
+   "mask",
+   "x",
+   "y",
+   "width",
+   "height"
+  ],
+  "CurveEditor": [
+   "curve",
+   "histogram"
+  ],
+  "CustomCombo": [
+   "choice"
+  ],
+  "DA3GeometryToMesh": [
+   "da3_geometry",
+   "batch_index",
+   "decimation",
+   "discontinuity_threshold",
+   "confidence_threshold",
+   "use_sky_mask",
+   "texture"
+  ],
+  "DA3GeometryToPointCloud": [
+   "da3_geometry",
+   "batch_index",
+   "confidence_threshold",
+   "use_sky_mask",
+   "downsample"
+  ],
+  "DA3Inference": [
+   "da3_model",
+   "image",
+   "resolution",
+   "resize_method",
+   "mode",
+   "ref_view_strategy",
+   "pose_method"
+  ],
+  "DA3Render": [
+   "da3_geometry",
+   "output",
+   "colored",
+   "colored"
+  ],
+  "DCTestNode": [
+   "combo",
+   "string",
+   "integer",
+   "image",
+   "subcombo",
+   "float_x",
+   "float_y",
+   "mask1"
+  ],
+  "DiffControlNetLoader": [
+   "model",
+   "control_net_name"
+  ],
+  "DifferentialDiffusion": [
+   "model",
+   "strength"
+  ],
+  "DiffusersLoader": [
+   "model_path"
+  ],
+  "DrawBBoxes": [
+   "image",
+   "bboxes"
+  ],
+  "DualCFGGuider": [
+   "model",
+   "cond1",
+   "cond2",
+   "negative",
+   "cfg_conds",
+   "cfg_cond2_negative",
+   "style"
+  ],
+  "DualCLIPLoader": [
+   "clip_name1",
+   "clip_name2",
+   "type",
+   "device"
+  ],
+  "DualModelGuider": [
+   "model",
+   "model_negative",
+   "positive",
+   "cfg",
+   "negative"
+  ],
+  "EasyCache": [
+   "model",
+   "reuse_threshold",
+   "start_percent",
+   "end_percent",
+   "verbose"
+  ],
+  "ElevenLabsAudioIsolation": [
+   "audio"
+  ],
+  "ElevenLabsInstantVoiceClone": [
+   "files",
+   "remove_background_noise",
+   "audio"
+  ],
+  "ElevenLabsSpeechToSpeech": [
+   "voice",
+   "audio",
+   "stability",
+   "model",
+   "output_format",
+   "seed",
+   "remove_background_noise"
+  ],
+  "ElevenLabsSpeechToText": [
+   "audio",
+   "model",
+   "language_code",
+   "num_speakers",
+   "seed",
+   "tag_audio_events",
+   "diarize",
+   "diarization_threshold",
+   "temperature",
+   "timestamps_granularity"
+  ],
+  "ElevenLabsTextToDialogue": [
+   "stability",
+   "apply_text_normalization",
+   "model",
+   "inputs",
+   "language_code",
+   "seed",
+   "output_format"
+  ],
+  "ElevenLabsTextToSoundEffects": [
+   "text",
+   "model",
+   "output_format",
+   "duration",
+   "loop",
+   "prompt_influence"
+  ],
+  "ElevenLabsTextToSpeech": [
+   "voice",
+   "text",
+   "stability",
+   "apply_text_normalization",
+   "model",
+   "language_code",
+   "seed",
+   "output_format",
+   "speed",
+   "similarity_boost",
+   "use_speaker_boost",
+   "style",
+   "speed",
+   "similarity_boost"
+  ],
+  "ElevenLabsVoiceSelector": [
+   "voice"
+  ],
+  "EmptyARVideoLatent": [
+   "width",
+   "height",
+   "length",
+   "batch_size"
+  ],
+  "EmptyAceStep1.5LatentAudio": [
+   "seconds",
+   "batch_size"
+  ],
+  "EmptyAceStepLatentAudio": [
+   "seconds",
+   "batch_size"
+  ],
+  "EmptyAudio": [
+   "duration",
+   "sample_rate",
+   "channels"
+  ],
+  "EmptyCosmosLatentVideo": [
+   "width",
+   "height",
+   "length",
+   "batch_size"
+  ],
+  "EmptyFlux2LatentImage": [
+   "width",
+   "height",
+   "batch_size"
+  ],
+  "EmptyHunyuanImageLatent": [
+   "width",
+   "height",
+   "batch_size"
+  ],
+  "EmptyHunyuanLatentVideo": [
+   "width",
+   "height",
+   "length",
+   "batch_size"
+  ],
+  "EmptyImage": [
+   "width",
+   "height",
+   "batch_size",
+   "color"
+  ],
+  "EmptyLTXVLatentVideo": [
+   "width",
+   "height",
+   "length",
+   "batch_size"
+  ],
+  "EmptyLatentAudio": [
+   "seconds",
+   "batch_size"
+  ],
+  "EmptyLatentHunyuan3Dv2": [
+   "resolution",
+   "batch_size"
+  ],
+  "EmptyLatentImage": [
+   "width",
+   "height",
+   "batch_size"
+  ],
+  "EmptyMiniMaxH3LatentAV": [
+   "width",
+   "height",
+   "length"
+  ],
+  "EmptyMochiLatentVideo": [
+   "width",
+   "height",
+   "length",
+   "batch_size"
+  ],
+  "EmptyQwenImageLayeredLatentImage": [
+   "width",
+   "height",
+   "layers",
+   "batch_size"
+  ],
+  "EmptySD3LatentImage": [
+   "width",
+   "height",
+   "batch_size"
+  ],
+  "Epsilon Scaling": [
+   "model",
+   "scaling_factor"
+  ],
+  "ExponentialScheduler": [
+   "steps",
+   "sigma_max",
+   "sigma_min"
+  ],
+  "ExtendIntermediateSigmas": [
+   "sigmas",
+   "steps",
+   "start_at_sigma",
+   "end_at_sigma",
+   "spacing"
+  ],
+  "FeatherMask": [
+   "mask",
+   "left",
+   "top",
+   "right",
+   "bottom"
+  ],
+  "File3DToSplat": [
+   "model_3d"
+  ],
+  "FlipSigmas": [
+   "sigmas"
+  ],
+  "Flux2ImageNode": [
+   "prompt",
+   "model",
+   "seed"
+  ],
+  "Flux2Scheduler": [
+   "steps",
+   "width",
+   "height"
+  ],
+  "Flux3ImageToVideoNode": [
+   "prompt",
+   "keyframes",
+   "placement",
+   "image",
+   "times"
+  ],
+  "Flux3TextToVideoNode": [
+   "prompt"
+  ],
+  "Flux3VideoContinuationNode": [
+   "video",
+   "prompt"
+  ],
+  "FluxDisableGuidance": [
+   "conditioning"
+  ],
+  "FluxEraseNode": [
+   "image",
+   "mask",
+   "dilate_pixels",
+   "seed"
+  ],
+  "FluxGuidance": [
+   "conditioning",
+   "guidance"
+  ],
+  "FluxKVCache": [
+   "model"
+  ],
+  "FluxKontextImageScale": [
+   "image"
+  ],
+  "FluxKontextMultiReferenceLatentMethod": [
+   "conditioning",
+   "reference_latents_method"
+  ],
+  "FluxProExpandNode": [
+   "image",
+   "prompt",
+   "prompt_upsampling",
+   "top",
+   "bottom",
+   "left",
+   "right",
+   "guidance",
+   "steps",
+   "seed"
+  ],
+  "FluxProFillNode": [
+   "image",
+   "mask",
+   "prompt",
+   "prompt_upsampling",
+   "guidance",
+   "steps",
+   "seed"
+  ],
+  "FluxProUltraImageNode": [
+   "prompt",
+   "prompt_upsampling",
+   "seed",
+   "aspect_ratio",
+   "raw",
+   "image_prompt",
+   "image_prompt_strength"
+  ],
+  "FluxVTONode": [
+   "person",
+   "garment",
+   "prompt",
+   "seed"
+  ],
+  "FrameInterpolate": [
+   "interp_model",
+   "images",
+   "multiplier"
+  ],
+  "FrameInterpolationModelLoader": [
+   "model_name"
+  ],
+  "FreSca": [
+   "model",
+   "scale_low",
+   "scale_high",
+   "freq_cutoff"
+  ],
+  "FreeU": [
+   "model",
+   "b1",
+   "b2",
+   "s1",
+   "s2"
+  ],
+  "FreeU_V2": [
+   "model",
+   "b1",
+   "b2",
+   "s1",
+   "s2"
+  ],
+  "GITSScheduler": [
+   "coeff",
+   "steps",
+   "denoise"
+  ],
+  "GLIGENLoader": [
+   "gligen_name"
+  ],
+  "GLIGENTextBoxApply": [
+   "conditioning_to",
+   "clip",
+   "gligen_textbox_model",
+   "text",
+   "width",
+   "height",
+   "x",
+   "y"
+  ],
+  "GLSLShader": [
+   "fragment_shader",
+   "size_mode",
+   "images",
+   "floats",
+   "ints",
+   "bools",
+   "curves",
+   "width",
+   "height"
+  ],
+  "GeminiImage2Node": [
+   "prompt",
+   "model",
+   "seed",
+   "aspect_ratio",
+   "resolution",
+   "response_modalities",
+   "images",
+   "files",
+   "system_prompt"
+  ],
+  "GeminiImageNode": [
+   "prompt",
+   "model",
+   "seed",
+   "images",
+   "files",
+   "aspect_ratio",
+   "response_modalities",
+   "system_prompt"
+  ],
+  "GeminiInputFiles": [
+   "file",
+   "GEMINI_INPUT_FILES"
+  ],
+  "GeminiNanoBanana2": [
+   "prompt",
+   "model",
+   "seed",
+   "aspect_ratio",
+   "resolution",
+   "response_modalities",
+   "thinking_level",
+   "images",
+   "files",
+   "system_prompt"
+  ],
+  "GeminiNanoBanana2V2": [
+   "prompt",
+   "model",
+   "seed",
+   "response_modalities",
+   "system_prompt",
+   "temperature",
+   "top_p"
+  ],
+  "GeminiNode": [
+   "prompt",
+   "model",
+   "seed",
+   "images",
+   "audio",
+   "video",
+   "files",
+   "system_prompt"
+  ],
+  "GeminiNodeV2": [
+   "prompt",
+   "model",
+   "seed",
+   "system_prompt"
+  ],
+  "GeminiVideoOmni": [
+   "model",
+   "seed"
+  ],
+  "GenerateTracks": [
+   "width",
+   "height",
+   "start_x",
+   "start_y",
+   "end_x",
+   "end_y",
+   "num_frames",
+   "num_tracks",
+   "track_spread",
+   "bezier",
+   "mid_x",
+   "mid_y",
+   "interpolation",
+   "track_mask"
+  ],
+  "GetICLoRAParameters": [
+   "iclora_model"
+  ],
+  "GetImageSize": [
+   "image"
+  ],
+  "GetSplatCount": [
+   "splat"
+  ],
+  "GetVideoComponents": [
+   "video"
+  ],
+  "GrokImageEditNode": [
+   "model",
+   "image",
+   "prompt",
+   "resolution",
+   "number_of_images",
+   "seed",
+   "aspect_ratio"
+  ],
+  "GrokImageEditNodeV2": [
+   "prompt",
+   "model",
+   "seed"
+  ],
+  "GrokImageNode": [
+   "model",
+   "prompt",
+   "aspect_ratio",
+   "number_of_images",
+   "seed",
+   "resolution"
+  ],
+  "GrokVideoEditNode": [
+   "model",
+   "prompt",
+   "video",
+   "seed"
+  ],
+  "GrokVideoExtendNode": [
+   "prompt",
+   "video",
+   "model",
+   "seed",
+   "duration"
+  ],
+  "GrokVideoNode": [
+   "model",
+   "prompt",
+   "resolution",
+   "aspect_ratio",
+   "duration",
+   "seed",
+   "image"
+  ],
+  "GrokVideoReferenceNode": [
+   "prompt",
+   "model",
+   "seed",
+   "reference_images",
+   "voice_1",
+   "voice_2",
+   "voice_3",
+   "resolution",
+   "aspect_ratio",
+   "duration",
+   "reference_images",
+   "resolution",
+   "aspect_ratio",
+   "duration",
+   "image",
+   "image"
+  ],
+  "GrowMask": [
+   "mask",
+   "expand",
+   "tapered_corners"
+  ],
+  "HappyHorseImageToVideoApi": [
+   "model",
+   "first_frame",
+   "seed",
+   "watermark",
+   "prompt",
+   "resolution",
+   "duration",
+   "prompt",
+   "resolution",
+   "duration"
+  ],
+  "HappyHorseReferenceVideoApi": [
+   "model",
+   "seed",
+   "watermark",
+   "prompt",
+   "resolution",
+   "ratio",
+   "duration",
+   "reference_images",
+   "prompt",
+   "resolution",
+   "ratio",
+   "duration",
+   "reference_images",
+   "reference_image",
+   "reference_image"
+  ],
+  "HappyHorseTextToVideoApi": [
+   "model",
+   "seed",
+   "watermark",
+   "prompt",
+   "resolution",
+   "ratio",
+   "duration",
+   "prompt",
+   "resolution",
+   "ratio",
+   "duration"
+  ],
+  "HappyHorseVideoEditApi": [
+   "model",
+   "video",
+   "seed",
+   "watermark",
+   "prompt",
+   "resolution",
+   "ratio",
+   "reference_images",
+   "reference_image"
+  ],
+  "HeyGenAvatarVideoNode": [
+   "engine",
+   "custom_avatar_id",
+   "speech",
+   "resolution",
+   "aspect_ratio",
+   "background_color",
+   "seed",
+   "avatar",
+   "avatar",
+   "avatar",
+   "avatar",
+   "text",
+   "voice",
+   "custom_voice_id",
+   "voice_speed",
+   "audio"
+  ],
+  "HeyGenCreateAvatarNode": [
+   "source",
+   "prompt",
+   "reference_images",
+   "identity_photo",
+   "ref_image"
+  ],
+  "HeyGenTalkingPhotoNode": [
+   "image",
+   "speech",
+   "resolution",
+   "aspect_ratio",
+   "expressiveness",
+   "seed",
+   "text",
+   "voice",
+   "custom_voice_id",
+   "voice_speed",
+   "audio"
+  ],
+  "HeyGenTextToSpeechNode": [
+   "text",
+   "voice",
+   "custom_voice_id",
+   "speed",
+   "ssml",
+   "seed"
+  ],
+  "HeyGenVideoTranslateNode": [
+   "video",
+   "output_language",
+   "mode",
+   "translate_audio_only",
+   "speaker_count",
+   "seed"
+  ],
+  "HiDreamO1ReferenceImages": [
+   "images",
+   "image"
+  ],
+  "HitPawGeneralImageEnhance": [
+   "model",
+   "image",
+   "upscale_factor",
+   "auto_downscale"
+  ],
+  "HitPawVideoEnhance": [
+   "model",
+   "video"
+  ],
+  "Hunyuan3Dv2Conditioning": [
+   "clip_vision_output"
+  ],
+  "Hunyuan3Dv2ConditioningMultiView": [
+   "front",
+   "left",
+   "back",
+   "right"
+  ],
+  "HunyuanImageToVideo": [
+   "positive",
+   "vae",
+   "width",
+   "height",
+   "length",
+   "batch_size",
+   "guidance_type",
+   "start_image"
+  ],
+  "HunyuanRefinerLatent": [
+   "positive",
+   "negative",
+   "latent",
+   "noise_augmentation"
+  ],
+  "HunyuanVideo15ImageToVideo": [
+   "positive",
+   "negative",
+   "vae",
+   "width",
+   "height",
+   "length",
+   "batch_size",
+   "start_image",
+   "clip_vision_output"
+  ],
+  "HunyuanVideo15LatentUpscaleWithModel": [
+   "model",
+   "samples",
+   "upscale_method",
+   "width",
+   "height",
+   "crop"
+  ],
+  "HunyuanVideo15SuperResolution": [
+   "positive",
+   "negative",
+   "vae",
+   "start_image",
+   "clip_vision_output",
+   "latent",
+   "noise_augmentation"
+  ],
+  "HyperTile": [
+   "model",
+   "tile_size",
+   "swap_size",
+   "max_depth",
+   "scale_depth"
+  ],
+  "HypernetworkLoader": [
+   "model",
+   "hypernetwork_name",
+   "strength"
+  ],
+  "Ideogram4Scheduler": [
+   "steps",
+   "width",
+   "height",
+   "mu",
+   "std"
+  ],
+  "IdeogramPImage": [
+   "prompt",
+   "quality",
+   "resolution",
+   "aspect_ratio",
+   "prompt_upsampling",
+   "seed"
+  ],
+  "IdeogramV3": [
+   "prompt",
+   "image",
+   "mask",
+   "aspect_ratio",
+   "resolution",
+   "magic_prompt_option",
+   "seed",
+   "num_images",
+   "rendering_speed",
+   "character_image",
+   "character_mask"
+  ],
+  "IdeogramV4": [
+   "prompt",
+   "resolution",
+   "rendering_speed",
+   "seed"
+  ],
+  "ImageAddNoise": [
+   "image",
+   "seed",
+   "strength"
+  ],
+  "ImageBatch": [
+   "image1",
+   "image2"
+  ],
+  "ImageBlend": [
+   "image1",
+   "image2",
+   "blend_factor",
+   "blend_mode"
+  ],
+  "ImageBlur": [
+   "image",
+   "blur_radius",
+   "sigma"
+  ],
+  "ImageColorToMask": [
+   "image",
+   "color"
+  ],
+  "ImageCompare": [
+   "image_a",
+   "image_b",
+   "compare_view"
+  ],
+  "ImageCompositeMasked": [
+   "destination",
+   "source",
+   "x",
+   "y",
+   "resize_source",
+   "mask"
+  ],
+  "ImageCrop": [
+   "image",
+   "width",
+   "height",
+   "x",
+   "y"
+  ],
+  "ImageCropV2": [
+   "image",
+   "crop_region"
+  ],
+  "ImageFlip": [
+   "image",
+   "flip_method"
+  ],
+  "ImageFromBatch": [
+   "image",
+   "batch_index",
+   "length"
+  ],
+  "ImageHistogram": [
+   "image"
+  ],
+  "ImageInvert": [
+   "image"
+  ],
+  "ImageMergeTileList": [
+   "image_list",
+   "final_width",
+   "final_height",
+   "overlap"
+  ],
+  "ImageOnlyCheckpointLoader": [
+   "ckpt_name"
+  ],
+  "ImageOnlyCheckpointSave": [
+   "model",
+   "clip_vision",
+   "vae",
+   "filename_prefix"
+  ],
+  "ImagePadForOutpaint": [
+   "image",
+   "left",
+   "top",
+   "right",
+   "bottom",
+   "feathering"
+  ],
+  "ImageQuantize": [
+   "image",
+   "colors",
+   "dither"
+  ],
+  "ImageRGBToYUV": [
+   "image"
+  ],
+  "ImageRotate": [
+   "image",
+   "rotation"
+  ],
+  "ImageScale": [
+   "image",
+   "upscale_method",
+   "width",
+   "height",
+   "crop"
+  ],
+  "ImageScaleBy": [
+   "image",
+   "upscale_method",
+   "scale_by"
+  ],
+  "ImageScaleToMaxDimension": [
+   "image",
+   "upscale_method",
+   "largest_size"
+  ],
+  "ImageScaleToTotalPixels": [
+   "image",
+   "upscale_method",
+   "megapixels",
+   "resolution_steps"
+  ],
+  "ImageSharpen": [
+   "image",
+   "sharpen_radius",
+   "sigma",
+   "alpha"
+  ],
+  "ImageStitch": [
+   "image1",
+   "direction",
+   "match_image_size",
+   "spacing_width",
+   "spacing_color",
+   "image2"
+  ],
+  "ImageToMask": [
+   "image",
+   "channel"
+  ],
+  "ImageUpscaleWithModel": [
+   "upscale_model",
+   "image"
+  ],
+  "ImageYUVToRGB": [
+   "Y",
+   "U",
+   "V"
+  ],
+  "InpaintModelConditioning": [
+   "positive",
+   "negative",
+   "vae",
+   "pixels",
+   "mask",
+   "noise_mask"
+  ],
+  "InstructPixToPixConditioning": [
+   "positive",
+   "negative",
+   "vae",
+   "pixels"
+  ],
+  "InvertBooleanNode": [
+   "boolean"
+  ],
+  "InvertMask": [
+   "mask"
+  ],
+  "JoinAudioChannels": [
+   "audio_left",
+   "audio_right"
+  ],
+  "JoinImageWithAlpha": [
+   "image",
+   "alpha"
+  ],
+  "JsonExtractString": [
+   "json_string",
+   "key"
+  ],
+  "KSampler": [
+   "model",
+   "seed",
+   "steps",
+   "cfg",
+   "sampler_name",
+   "scheduler",
+   "positive",
+   "negative",
+   "latent_image",
+   "denoise"
+  ],
+  "KSamplerAdvanced": [
+   "model",
+   "add_noise",
+   "noise_seed",
+   "steps",
+   "cfg",
+   "sampler_name",
+   "scheduler",
+   "positive",
+   "negative",
+   "latent_image",
+   "start_at_step",
+   "end_at_step",
+   "return_with_leftover_noise"
+  ],
+  "KSamplerSelect": [
+   "sampler_name"
+  ],
+  "Kandinsky5ImageToVideo": [
+   "positive",
+   "negative",
+   "vae",
+   "width",
+   "height",
+   "length",
+   "batch_size",
+   "start_image"
+  ],
+  "KarrasScheduler": [
+   "steps",
+   "sigma_max",
+   "sigma_min",
+   "rho"
+  ],
+  "KlingAvatarNode": [
+   "image",
+   "sound_file",
+   "mode",
+   "prompt",
+   "seed"
+  ],
+  "KlingFirstLastFrameNode": [
+   "prompt",
+   "duration",
+   "first_frame",
+   "end_frame",
+   "generate_audio",
+   "model",
+   "seed",
+   "resolution"
+  ],
+  "KlingImage2VideoNode": [
+   "start_frame",
+   "prompt",
+   "negative_prompt",
+   "model_name",
+   "cfg_scale",
+   "mode",
+   "aspect_ratio",
+   "duration"
+  ],
+  "KlingImageGenerationNode": [
+   "prompt",
+   "negative_prompt",
+   "image_type",
+   "image_fidelity",
+   "human_fidelity",
+   "model_name",
+   "aspect_ratio",
+   "n",
+   "image",
+   "seed"
+  ],
+  "KlingImageToVideoWithAudio": [
+   "model_name",
+   "start_frame",
+   "prompt",
+   "mode",
+   "duration",
+   "generate_audio"
+  ],
+  "KlingLipSyncAudioToVideoNode": [
+   "video",
+   "audio",
+   "voice_language"
+  ],
+  "KlingLipSyncTextToVideoNode": [
+   "video",
+   "text",
+   "voice",
+   "voice_speed"
+  ],
+  "KlingMotionControl": [
+   "prompt",
+   "reference_image",
+   "reference_video",
+   "keep_original_sound",
+   "character_orientation",
+   "mode",
+   "model"
+  ],
+  "KlingOmniProEditVideoNode": [
+   "model_name",
+   "prompt",
+   "video",
+   "keep_original_sound",
+   "reference_images",
+   "resolution",
+   "seed"
+  ],
+  "KlingOmniProFirstLastFrameNode": [
+   "model_name",
+   "prompt",
+   "duration",
+   "first_frame",
+   "end_frame",
+   "reference_images",
+   "resolution",
+   "storyboards",
+   "generate_audio",
+   "seed"
+  ],
+  "KlingOmniProImageNode": [
+   "model_name",
+   "prompt",
+   "resolution",
+   "aspect_ratio",
+   "series_amount",
+   "reference_images",
+   "seed"
+  ],
+  "KlingOmniProImageToVideoNode": [
+   "model_name",
+   "prompt",
+   "aspect_ratio",
+   "duration",
+   "reference_images",
+   "resolution",
+   "storyboards",
+   "generate_audio",
+   "seed"
+  ],
+  "KlingOmniProTextToVideoNode": [
+   "model_name",
+   "prompt",
+   "aspect_ratio",
+   "duration",
+   "resolution",
+   "storyboards",
+   "generate_audio",
+   "seed"
+  ],
+  "KlingOmniProVideoToVideoNode": [
+   "model_name",
+   "prompt",
+   "aspect_ratio",
+   "duration",
+   "reference_video",
+   "keep_original_sound",
+   "reference_images",
+   "resolution",
+   "seed"
+  ],
+  "KlingStartEndFrameNode": [
+   "start_frame",
+   "end_frame",
+   "prompt",
+   "negative_prompt",
+   "cfg_scale",
+   "aspect_ratio",
+   "mode"
+  ],
+  "KlingTextToVideoNode": [
+   "prompt",
+   "negative_prompt",
+   "cfg_scale",
+   "aspect_ratio",
+   "mode"
+  ],
+  "KlingTextToVideoWithAudio": [
+   "model_name",
+   "prompt",
+   "mode",
+   "aspect_ratio",
+   "duration",
+   "generate_audio"
+  ],
+  "KlingVideoExtendNode": [
+   "prompt",
+   "negative_prompt",
+   "cfg_scale",
+   "video_id"
+  ],
+  "KlingVideoNode": [
+   "multi_shot",
+   "generate_audio",
+   "model",
+   "seed",
+   "start_frame",
+   "prompt",
+   "negative_prompt",
+   "duration",
+   "resolution",
+   "aspect_ratio",
+   "resolution",
+   "aspect_ratio"
+  ],
+  "Krea2ImageNode": [
+   "prompt",
+   "model",
+   "seed"
+  ],
+  "Krea2StyleReferenceNode": [
+   "image",
+   "strength",
+   "style_reference"
+  ],
+  "LTXAVTextEncoderLoader": [
+   "text_encoder",
+   "ckpt_name",
+   "device"
+  ],
+  "LTXVAddGuide": [
+   "positive",
+   "negative",
+   "vae",
+   "latent",
+   "image",
+   "frame_idx",
+   "strength",
+   "attention_mask",
+   "iclora_parameters"
+  ],
+  "LTXVAudioVAEDecode": [
+   "samples"
+  ],
+  "LTXVAudioVAEEncode": [
+   "audio"
+  ],
+  "LTXVAudioVAELoader": [
+   "ckpt_name"
+  ],
+  "LTXVConcatAVLatent": [
+   "video_latent",
+   "audio_latent"
+  ],
+  "LTXVConditioning": [
+   "positive",
+   "negative",
+   "frame_rate"
+  ],
+  "LTXVCropGuides": [
+   "positive",
+   "negative",
+   "latent"
+  ],
+  "LTXVEmptyLatentAudio": [
+   "frames_number",
+   "batch_size",
+   "frame_rate"
+  ],
+  "LTXVImgToVideo": [
+   "positive",
+   "negative",
+   "vae",
+   "image",
+   "width",
+   "height",
+   "length",
+   "batch_size",
+   "strength"
+  ],
+  "LTXVImgToVideoInplace": [
+   "vae",
+   "image",
+   "latent",
+   "strength",
+   "bypass"
+  ],
+  "LTXVLatentUpsampler": [
+   "samples",
+   "upscale_model",
+   "vae"
+  ],
+  "LTXVPreprocess": [
+   "image"
+  ],
+  "LTXVReferenceAudio": [
+   "model",
+   "positive",
+   "negative",
+   "reference_audio",
+   "identity_guidance_scale",
+   "start_percent",
+   "end_percent"
+  ],
+  "LTXVScheduler": [
+   "steps",
+   "max_shift",
+   "base_shift",
+   "latent"
+  ],
+  "LTXVSeparateAVLatent": [
+   "av_latent"
+  ],
+  "LaplaceScheduler": [
+   "steps",
+   "sigma_max",
+   "sigma_min",
+   "mu",
+   "beta"
+  ],
+  "LatentAdd": [
+   "samples1",
+   "samples2"
+  ],
+  "LatentApplyOperation": [
+   "samples",
+   "operation"
+  ],
+  "LatentApplyOperationCFG": [
+   "model",
+   "operation"
+  ],
+  "LatentBatch": [
+   "samples1",
+   "samples2"
+  ],
+  "LatentBatchSeedBehavior": [
+   "samples",
+   "seed_behavior"
+  ],
+  "LatentBlend": [
+   "samples1",
+   "samples2",
+   "blend_factor"
+  ],
+  "LatentComposite": [
+   "samples_to",
+   "samples_from",
+   "x",
+   "y",
+   "feather"
+  ],
+  "LatentCompositeMasked": [
+   "destination",
+   "source",
+   "x",
+   "y",
+   "resize_source",
+   "mask"
+  ],
+  "LatentConcat": [
+   "samples1",
+   "samples2",
+   "dim"
+  ],
+  "LatentCrop": [
+   "samples",
+   "width",
+   "height",
+   "x",
+   "y"
+  ],
+  "LatentCut": [
+   "samples",
+   "dim",
+   "index",
+   "amount"
+  ],
+  "LatentCutToBatch": [
+   "samples",
+   "dim",
+   "slice_size"
+  ],
+  "LatentFlip": [
+   "samples",
+   "flip_method"
+  ],
+  "LatentFromBatch": [
+   "samples",
+   "batch_index",
+   "length"
+  ],
+  "LatentInterpolate": [
+   "samples1",
+   "samples2",
+   "ratio"
+  ],
+  "LatentMultiply": [
+   "samples",
+   "multiplier"
+  ],
+  "LatentOperationSharpen": [
+   "sharpen_radius",
+   "sigma",
+   "alpha"
+  ],
+  "LatentOperationTonemapReinhard": [
+   "multiplier"
+  ],
+  "LatentRotate": [
+   "samples",
+   "rotation"
+  ],
+  "LatentSubtract": [
+   "samples1",
+   "samples2"
+  ],
+  "LatentUpscale": [
+   "samples",
+   "upscale_method",
+   "width",
+   "height",
+   "crop"
+  ],
+  "LatentUpscaleBy": [
+   "samples",
+   "upscale_method",
+   "scale_by"
+  ],
+  "LatentUpscaleModelLoader": [
+   "model_name"
+  ],
+  "LazyCache": [
+   "model",
+   "reuse_threshold",
+   "start_percent",
+   "end_percent",
+   "verbose"
+  ],
+  "Load3D": [
+   "model_file",
+   "image",
+   "width",
+   "height"
+  ],
+  "Load3DAdvanced": [
+   "model_file",
+   "viewport_state",
+   "width",
+   "height"
+  ],
+  "LoadAudio": [
+   "audio"
+  ],
+  "LoadBackgroundRemovalModel": [
+   "bg_removal_name"
+  ],
+  "LoadDA3Model": [
+   "model_name",
+   "weight_dtype"
+  ],
+  "LoadImage": [
+   "image"
+  ],
+  "LoadImageDataSetFromFolder": [
+   "folder"
+  ],
+  "LoadImageMask": [
+   "channel"
+  ],
+  "LoadImageOutput": [
+   "image"
+  ],
+  "LoadImageTextDataSetFromFolder": [
+   "folder"
+  ],
+  "LoadLatent": [
+   "latent"
+  ],
+  "LoadMediaPipeFaceLandmarker": [
+   "model_name"
+  ],
+  "LoadMoGeModel": [
+   "model_name"
+  ],
+  "LoadTrainingDataset": [
+   "folder_name"
+  ],
+  "LoadVideo": [
+   "file"
+  ],
+  "LoadVideoDataSetFromFolder": [
+   "folder"
+  ],
+  "LoadVideoTextDataSetFromFolder": [
+   "folder"
+  ],
+  "LoraLoader": [
+   "model",
+   "clip",
+   "lora_name",
+   "strength_model",
+   "strength_clip"
+  ],
+  "LoraLoaderBypass": [
+   "model",
+   "clip",
+   "lora_name",
+   "strength_model",
+   "strength_clip"
+  ],
+  "LoraLoaderBypassModelOnly": [
+   "model",
+   "lora_name",
+   "strength_model"
+  ],
+  "LoraLoaderModelOnly": [
+   "model",
+   "lora_name",
+   "strength_model"
+  ],
+  "LoraModelLoader": [
+   "model",
+   "lora",
+   "strength_model",
+   "bypass"
+  ],
+  "LoraSave": [
+   "filename_prefix",
+   "rank",
+   "lora_type",
+   "bias_diff",
+   "model_diff",
+   "text_encoder_diff"
+  ],
+  "LossGraphNode": [
+   "loss",
+   "filename_prefix"
+  ],
+  "LtxvApiImageToVideo": [
+   "image",
+   "model",
+   "prompt",
+   "duration",
+   "resolution",
+   "fps",
+   "generate_audio"
+  ],
+  "LtxvApiTextToVideo": [
+   "model",
+   "prompt",
+   "duration",
+   "resolution",
+   "fps",
+   "generate_audio"
+  ],
+  "LumaConceptsNode": [
+   "concept1",
+   "concept2",
+   "concept3",
+   "concept4",
+   "luma_concepts"
+  ],
+  "LumaImageEditNode2": [
+   "source",
+   "prompt",
+   "model",
+   "seed"
+  ],
+  "LumaImageModifyNode": [
+   "image",
+   "prompt",
+   "image_weight",
+   "model",
+   "seed"
+  ],
+  "LumaImageNode": [
+   "prompt",
+   "model",
+   "aspect_ratio",
+   "seed",
+   "style_image_weight",
+   "image_luma_ref",
+   "style_image",
+   "character_image"
+  ],
+  "LumaImageNode2": [
+   "prompt",
+   "model",
+   "seed",
+   "aspect_ratio",
+   "aspect_ratio"
+  ],
+  "LumaImageToVideoNode": [
+   "prompt",
+   "model",
+   "resolution",
+   "duration",
+   "loop",
+   "seed",
+   "first_image",
+   "last_image",
+   "luma_concepts"
+  ],
+  "LumaRay32ExtendVideoNode": [
+   "source_generation_id",
+   "direction",
+   "prompt",
+   "resolution",
+   "loop"
+  ],
+  "LumaRay32ImageToVideoNode": [
+   "prompt",
+   "resolution",
+   "loop",
+   "start_frame",
+   "end_frame"
+  ],
+  "LumaRay32KeyframeNode": [
+   "image",
+   "position",
+   "keyframes",
+   "fraction",
+   "seconds"
+  ],
+  "LumaRay32KeyframesToVideoNode": [
+   "prompt",
+   "resolution",
+   "duration",
+   "keyframes"
+  ],
+  "LumaRay32TextToVideoNode": [
+   "prompt",
+   "aspect_ratio",
+   "resolution",
+   "duration",
+   "loop"
+  ],
+  "LumaRay32VideoEditNode": [
+   "video",
+   "prompt",
+   "resolution",
+   "strength"
+  ],
+  "LumaRay32VideoReframeNode": [
+   "video",
+   "prompt",
+   "aspect_ratio",
+   "resolution"
+  ],
+  "LumaReferenceNode": [
+   "image",
+   "weight",
+   "luma_ref"
+  ],
+  "LumaVideoNode": [
+   "prompt",
+   "model",
+   "aspect_ratio",
+   "resolution",
+   "duration",
+   "loop",
+   "seed",
+   "luma_concepts"
+  ],
+  "MagnificImageRelightNode": [
+   "image",
+   "prompt",
+   "light_transfer_strength",
+   "style",
+   "interpolate_from_original",
+   "change_background",
+   "preserve_details",
+   "advanced_settings",
+   "reference_image",
+   "whites",
+   "blacks",
+   "brightness",
+   "contrast",
+   "saturation",
+   "engine",
+   "transfer_light_a",
+   "transfer_light_b",
+   "fixed_generation"
+  ],
+  "MagnificImageSkinEnhancerNode": [
+   "image",
+   "sharpen",
+   "smart_grain",
+   "mode",
+   "skin_detail",
+   "optimized_for"
+  ],
+  "MagnificImageStyleTransferNode": [
+   "image",
+   "reference_image",
+   "prompt",
+   "style_strength",
+   "structure_strength",
+   "flavor",
+   "engine",
+   "portrait_mode",
+   "fixed_generation",
+   "portrait_style",
+   "portrait_beautifier"
+  ],
+  "MagnificImageUpscalerCreativeNode": [
+   "image",
+   "prompt",
+   "scale_factor",
+   "optimized_for",
+   "creativity",
+   "hdr",
+   "resemblance",
+   "fractality",
+   "engine",
+   "auto_downscale"
+  ],
+  "MagnificImageUpscalerPreciseV2Node": [
+   "image",
+   "scale_factor",
+   "flavor",
+   "sharpen",
+   "smart_grain",
+   "ultra_detail",
+   "auto_downscale"
+  ],
+  "Mahiro": [
+   "model"
+  ],
+  "MakeTrainingDataset": [
+   "images",
+   "vae",
+   "clip",
+   "texts"
+  ],
+  "ManualSigmas": [
+   "sigmas"
+  ],
+  "MaskComposite": [
+   "destination",
+   "source",
+   "x",
+   "y",
+   "operation"
+  ],
+  "MaskPreview": [
+   "mask"
+  ],
+  "MaskToImage": [
+   "mask"
+  ],
+  "MediaPipeFaceLandmarker": [
+   "face_detection_model",
+   "image",
+   "detector_variant",
+   "num_faces",
+   "min_confidence",
+   "missing_frame_fallback"
+  ],
+  "MediaPipeFaceMask": [
+   "face_landmarks",
+   "regions"
+  ],
+  "MediaPipeFaceMeshVisualize": [
+   "face_landmarks",
+   "image",
+   "connections",
+   "color",
+   "thickness",
+   "point_size"
+  ],
+  "MergeSplat": [
+   "splats"
+  ],
+  "MeshyAnimateModelNode": [
+   "rig_task_id",
+   "action_id"
+  ],
+  "MeshyImageToModelNode": [
+   "model",
+   "image",
+   "should_remesh",
+   "symmetry_mode",
+   "should_texture",
+   "pose_mode",
+   "seed",
+   "topology",
+   "target_polycount",
+   "enable_pbr",
+   "texture_prompt",
+   "texture_image"
+  ],
+  "MeshyMultiImageToModelNode": [
+   "model",
+   "images",
+   "should_remesh",
+   "symmetry_mode",
+   "should_texture",
+   "pose_mode",
+   "seed",
+   "image",
+   "topology",
+   "target_polycount",
+   "enable_pbr",
+   "texture_prompt",
+   "texture_image"
+  ],
+  "MeshyRefineNode": [
+   "model",
+   "meshy_task_id",
+   "enable_pbr",
+   "texture_prompt",
+   "texture_image"
+  ],
+  "MeshyRigModelNode": [
+   "meshy_task_id",
+   "height_meters",
+   "texture_image"
+  ],
+  "MeshyTextToModelNode": [
+   "model",
+   "prompt",
+   "style",
+   "should_remesh",
+   "symmetry_mode",
+   "pose_mode",
+   "seed",
+   "topology",
+   "target_polycount"
+  ],
+  "MeshyTextureNode": [
+   "model",
+   "meshy_task_id",
+   "enable_original_uv",
+   "pbr",
+   "text_style_prompt",
+   "image_style"
+  ],
+  "MiniMaxH3ImageToVideo": [
+   "clip",
+   "vae",
+   "prompt",
+   "width",
+   "height",
+   "length",
+   "first_frame",
+   "last_frame"
+  ],
+  "MiniMaxH3ReferenceToVideo": [
+   "clip",
+   "vae",
+   "audio_vae",
+   "prompt",
+   "width",
+   "height",
+   "length",
+   "ref_image_size",
+   "ref_images",
+   "ref_videos",
+   "ref_video_audios",
+   "ref_audios",
+   "ref_image",
+   "ref_video",
+   "ref_video_audio",
+   "ref_audio"
+  ],
+  "MiniMaxH3SigmaShift": [
+   "model",
+   "shift_video",
+   "shift_audio"
+  ],
+  "MinimaxHailuo03FirstLastFrameNode": [
+   "model",
+   "first_frame",
+   "last_frame",
+   "seed",
+   "watermark"
+  ],
+  "MinimaxHailuo03ReferenceNode": [
+   "model",
+   "seed",
+   "watermark",
+   "reference_images",
+   "reference_videos",
+   "reference_audios",
+   "reference_image",
+   "reference_video",
+   "reference_audio"
+  ],
+  "MinimaxHailuo03TextToVideoNode": [
+   "model",
+   "seed",
+   "watermark"
+  ],
+  "MinimaxHailuoVideoNode": [
+   "prompt_text",
+   "seed",
+   "first_frame_image",
+   "prompt_optimizer",
+   "duration",
+   "resolution"
+  ],
+  "MinimaxImageToVideoNode": [
+   "image",
+   "prompt_text",
+   "model",
+   "seed"
+  ],
+  "MinimaxSubjectToVideoNode": [
+   "subject",
+   "prompt_text",
+   "model",
+   "seed"
+  ],
+  "MinimaxTextToVideoNode": [
+   "prompt_text",
+   "model",
+   "seed"
+  ],
+  "MoGeInference": [
+   "moge_model",
+   "image",
+   "resolution_level",
+   "fov_x_degrees",
+   "batch_size",
+   "force_projection",
+   "apply_mask"
+  ],
+  "MoGePanoramaInference": [
+   "moge_model",
+   "image",
+   "resolution_level",
+   "split_resolution",
+   "merge_resolution",
+   "batch_size"
+  ],
+  "MoGePointMapToMesh": [
+   "moge_geometry",
+   "batch_index",
+   "decimation",
+   "discontinuity_threshold",
+   "texture"
+  ],
+  "MoGeRender": [
+   "moge_geometry",
+   "output"
+  ],
+  "ModelComputeDtype": [
+   "model",
+   "dtype"
+  ],
+  "ModelMergeAdd": [
+   "model1",
+   "model2"
+  ],
+  "ModelMergeBlocks": [
+   "model1",
+   "model2",
+   "input",
+   "middle",
+   "out"
+  ],
+  "ModelMergeSimple": [
+   "model1",
+   "model2",
+   "ratio"
+  ],
+  "ModelMergeSubtract": [
+   "model1",
+   "model2",
+   "multiplier"
+  ],
+  "ModelNoiseScale": [
+   "model",
+   "noise_scale"
+  ],
+  "ModelPatchLoader": [
+   "name"
+  ],
+  "ModelSamplingAuraFlow": [
+   "model",
+   "shift"
+  ],
+  "ModelSamplingContinuousEDM": [
+   "model",
+   "sampling",
+   "sigma_max",
+   "sigma_min"
+  ],
+  "ModelSamplingContinuousV": [
+   "model",
+   "sampling",
+   "sigma_max",
+   "sigma_min"
+  ],
+  "ModelSamplingDiscrete": [
+   "model",
+   "sampling",
+   "zsnr"
+  ],
+  "ModelSamplingFlux": [
+   "model",
+   "max_shift",
+   "base_shift",
+   "width",
+   "height"
+  ],
+  "ModelSamplingLTXV": [
+   "model",
+   "max_shift",
+   "base_shift",
+   "latent"
+  ],
+  "ModelSamplingSD3": [
+   "model",
+   "shift"
+  ],
+  "ModelSamplingStableCascade": [
+   "model",
+   "shift"
+  ],
+  "ModelSave": [
+   "model",
+   "filename_prefix"
+  ],
+  "Morphology": [
+   "image",
+   "operation",
+   "kernel_size"
+  ],
+  "MultiGPU_Options": [
+   "device_index",
+   "relative_speed",
+   "gpu_options"
+  ],
+  "MultiGPU_WorkUnits": [
+   "model",
+   "max_gpus"
+  ],
+  "NAGuidance": [
+   "model",
+   "nag_scale",
+   "nag_alpha",
+   "nag_tau"
+  ],
+  "NormalizeVideoLatentStart": [
+   "latent",
+   "start_frame_count",
+   "reference_frame_count"
+  ],
+  "OpenAIChatConfig": [
+   "truncation",
+   "max_output_tokens",
+   "instructions"
+  ],
+  "OpenAIChatNode": [
+   "prompt",
+   "persist_context",
+   "model",
+   "images",
+   "files",
+   "advanced_options"
+  ],
+  "OpenAIDalle2": [
+   "prompt",
+   "seed",
+   "size",
+   "n",
+   "image",
+   "mask"
+  ],
+  "OpenAIDalle3": [
+   "prompt",
+   "seed",
+   "quality",
+   "style",
+   "size"
+  ],
+  "OpenAIGPTImage1": [
+   "prompt",
+   "seed",
+   "quality",
+   "background",
+   "size",
+   "n",
+   "image",
+   "mask",
+   "model",
+   "custom_width",
+   "custom_height"
+  ],
+  "OpenAIGPTImageNodeV2": [
+   "prompt",
+   "model",
+   "n",
+   "seed",
+   "size",
+   "custom_width",
+   "custom_height",
+   "background"
+  ],
+  "OpenAIInputFiles": [
+   "file",
+   "OPENAI_INPUT_FILES"
+  ],
+  "OpenAIVideoSora2": [
+   "model",
+   "prompt",
+   "size",
+   "duration",
+   "image",
+   "seed"
+  ],
+  "OpenRouterLLMNode": [
+   "prompt",
+   "model",
+   "seed",
+   "system_prompt"
+  ],
+  "OpticalFlowLoader": [
+   "model_name"
+  ],
+  "OptimalStepsScheduler": [
+   "model_type",
+   "steps",
+   "denoise"
+  ],
+  "Painter": [
+   "image",
+   "mask",
+   "width",
+   "height",
+   "bg_color"
+  ],
+  "PatchModelAddDownscale": [
+   "model",
+   "block_number",
+   "downscale_factor",
+   "start_percent",
+   "end_percent",
+   "downscale_after_skip",
+   "downscale_method",
+   "upscale_method"
+  ],
+  "PerpNeg": [
+   "model",
+   "empty_conditioning",
+   "neg_scale"
+  ],
+  "PerpNegGuider": [
+   "model",
+   "positive",
+   "negative",
+   "empty_conditioning",
+   "cfg",
+   "neg_scale"
+  ],
+  "PerturbedAttentionGuidance": [
+   "model",
+   "scale"
+  ],
+  "PhotoMakerEncode": [
+   "photomaker",
+   "image",
+   "clip",
+   "text"
+  ],
+  "PhotoMakerLoader": [
+   "photomaker_model_name"
+  ],
+  "PiDConditioning": [
+   "positive",
+   "latent",
+   "latent_format",
+   "degrade_sigma"
+  ],
+  "PixverseImageToVideoNode": [
+   "image",
+   "prompt",
+   "quality",
+   "duration_seconds",
+   "motion_mode",
+   "seed",
+   "negative_prompt",
+   "pixverse_template"
+  ],
+  "PixverseTemplateNode": [
+   "template"
+  ],
+  "PixverseTextToVideoNode": [
+   "prompt",
+   "aspect_ratio",
+   "quality",
+   "duration_seconds",
+   "motion_mode",
+   "seed",
+   "negative_prompt",
+   "pixverse_template"
+  ],
+  "PixverseTransitionVideoNode": [
+   "first_frame",
+   "last_frame",
+   "prompt",
+   "quality",
+   "duration_seconds",
+   "motion_mode",
+   "seed",
+   "negative_prompt"
+  ],
+  "PolyexponentialScheduler": [
+   "steps",
+   "sigma_max",
+   "sigma_min",
+   "rho"
+  ],
+  "PorterDuffImageComposite": [
+   "source",
+   "source_alpha",
+   "destination",
+   "destination_alpha",
+   "mode"
+  ],
+  "Preview3D": [
+   "camera_info",
+   "bg_image",
+   "model_file"
+  ],
+  "Preview3DAdvanced": [
+   "model_3d",
+   "model_3d_info",
+   "viewport_state",
+   "camera_info",
+   "width",
+   "height"
+  ],
+  "PreviewAny": [
+   "source"
+  ],
+  "PreviewAudio": [
+   "audio"
+  ],
+  "PreviewGaussianSplat": [
+   "model_3d",
+   "model_3d_info",
+   "viewport_state",
+   "camera_info",
+   "width",
+   "height"
+  ],
+  "PreviewImage": [
+   "images"
+  ],
+  "PreviewPointCloud": [
+   "model_3d",
+   "model_3d_info",
+   "viewport_state",
+   "camera_info",
+   "width",
+   "height"
+  ],
+  "PrimitiveBoolean": [
+   "value"
+  ],
+  "PrimitiveBoundingBox": [
+   "x",
+   "y",
+   "width",
+   "height"
+  ],
+  "PrimitiveFloat": [
+   "value"
+  ],
+  "PrimitiveInt": [
+   "value"
+  ],
+  "PrimitiveString": [
+   "value"
+  ],
+  "PrimitiveStringMultiline": [
+   "value"
+  ],
+  "QuadrupleCLIPLoader": [
+   "clip_name1",
+   "clip_name2",
+   "clip_name3",
+   "clip_name4"
+  ],
+  "QuiverImageToSVGNode": [
+   "image",
+   "auto_crop",
+   "model",
+   "seed",
+   "target_size"
+  ],
+  "QuiverTextToSVGNode": [
+   "prompt",
+   "instructions",
+   "reference_images",
+   "model",
+   "seed",
+   "image"
+  ],
+  "QwenImageDiffsynthControlnet": [
+   "model",
+   "model_patch",
+   "vae",
+   "image",
+   "strength",
+   "mask"
+  ],
+  "RTDETR_detect": [
+   "model",
+   "image",
+   "threshold",
+   "class_name",
+   "max_detections"
+  ],
+  "RandomNoise": [
+   "noise_seed"
+  ],
+  "RebatchImages": [
+   "images",
+   "batch_size"
+  ],
+  "RebatchLatents": [
+   "latents",
+   "batch_size"
+  ],
+  "RecordAudio": [
+   "audio"
+  ],
+  "RecraftColorRGB": [
+   "r",
+   "g",
+   "b",
+   "recraft_color"
+  ],
+  "RecraftControls": [
+   "colors",
+   "background_color"
+  ],
+  "RecraftCreateStyleNode": [
+   "style",
+   "images",
+   "image"
+  ],
+  "RecraftCreativeUpscaleNode": [
+   "image"
+  ],
+  "RecraftCrispUpscaleNode": [
+   "image"
+  ],
+  "RecraftImageInpaintingNode": [
+   "image",
+   "mask",
+   "prompt",
+   "n",
+   "seed",
+   "recraft_style",
+   "negative_prompt"
+  ],
+  "RecraftImageToImageNode": [
+   "image",
+   "prompt",
+   "n",
+   "strength",
+   "seed",
+   "recraft_style",
+   "negative_prompt",
+   "recraft_controls"
+  ],
+  "RecraftRemoveBackgroundNode": [
+   "image"
+  ],
+  "RecraftReplaceBackgroundNode": [
+   "image",
+   "prompt",
+   "n",
+   "seed",
+   "recraft_style",
+   "negative_prompt"
+  ],
+  "RecraftStyleV3DigitalIllustration": [
+   "substyle"
+  ],
+  "RecraftStyleV3InfiniteStyleLibrary": [
+   "style_id"
+  ],
+  "RecraftStyleV3LogoRaster": [
+   "substyle"
+  ],
+  "RecraftStyleV3RealisticImage": [
+   "substyle"
+  ],
+  "RecraftStyleV3VectorIllustrationNode": [
+   "substyle"
+  ],
+  "RecraftTextToImageNode": [
+   "prompt",
+   "size",
+   "n",
+   "seed",
+   "recraft_style",
+   "negative_prompt",
+   "recraft_controls"
+  ],
+  "RecraftTextToVectorNode": [
+   "prompt",
+   "substyle",
+   "size",
+   "n",
+   "seed",
+   "negative_prompt",
+   "recraft_controls"
+  ],
+  "RecraftV4TextToImageNode": [
+   "prompt",
+   "negative_prompt",
+   "model",
+   "n",
+   "seed",
+   "recraft_controls",
+   "size",
+   "size",
+   "size",
+   "size",
+   "size",
+   "size"
+  ],
+  "RecraftV4TextToVectorNode": [
+   "prompt",
+   "negative_prompt",
+   "model",
+   "n",
+   "seed",
+   "recraft_controls",
+   "size",
+   "size",
+   "size",
+   "size",
+   "size",
+   "size"
+  ],
+  "RecraftVectorizeImageNode": [
+   "image"
+  ],
+  "ReferenceLatent": [
+   "conditioning",
+   "latent"
+  ],
+  "ReferenceTimbreAudio": [
+   "conditioning",
+   "latent"
+  ],
+  "RegexExtract": [
+   "string",
+   "regex_pattern",
+   "mode",
+   "case_insensitive",
+   "multiline",
+   "dotall",
+   "group_index"
+  ],
+  "RegexMatch": [
+   "string",
+   "regex_pattern",
+   "case_insensitive",
+   "multiline",
+   "dotall"
+  ],
+  "RegexReplace": [
+   "string",
+   "regex_pattern",
+   "replace",
+   "case_insensitive",
+   "multiline",
+   "dotall",
+   "count"
+  ],
+  "RemoveBackground": [
+   "bg_removal_model",
+   "image"
+  ],
+  "RenderSplat": [
+   "splat",
+   "width",
+   "height",
+   "frames",
+   "splat_scale",
+   "sharpen",
+   "headlight_shading",
+   "opacity_threshold",
+   "render_style",
+   "background",
+   "bg_image",
+   "camera_info"
+  ],
+  "RenormCFG": [
+   "model",
+   "cfg_trunc",
+   "renorm_cfg"
+  ],
+  "RepeatImageBatch": [
+   "image",
+   "amount"
+  ],
+  "RepeatLatentBatch": [
+   "samples",
+   "amount"
+  ],
+  "ReplaceVideoLatentFrames": [
+   "destination",
+   "source",
+   "index"
+  ],
+  "RescaleCFG": [
+   "model",
+   "multiplier"
+  ],
+  "ResizeAndPadImage": [
+   "image",
+   "target_width",
+   "target_height",
+   "padding_color",
+   "interpolation"
+  ],
+  "ResizeImageMaskNode": [
+   "input",
+   "resize_type",
+   "scale_method",
+   "width",
+   "height",
+   "multiplier",
+   "longer_size",
+   "shorter_size",
+   "width",
+   "height",
+   "megapixels",
+   "match",
+   "multiple"
+  ],
+  "ResolutionBucket": [
+   "latents",
+   "conditioning"
+  ],
+  "ResolutionSelector": [
+   "aspect_ratio",
+   "megapixels"
+  ],
+  "ReveImageCreateNode": [
+   "prompt",
+   "model",
+   "seed"
+  ],
+  "ReveImageEditNode": [
+   "image",
+   "edit_instruction",
+   "model",
+   "seed"
+  ],
+  "ReveImageRemixNode": [
+   "reference_images",
+   "prompt",
+   "model",
+   "seed",
+   "image"
+  ],
+  "Rodin3D_Detail": [
+   "Images"
+  ],
+  "Rodin3D_Gen2": [
+   "Images",
+   "Seed",
+   "Material_Type",
+   "Polygon_count",
+   "TAPose"
+  ],
+  "Rodin3D_Gen25_Image": [
+   "images",
+   "image"
+  ],
+  "Rodin3D_Gen25_Text": [
+   "prompt"
+  ],
+  "Rodin3D_Regular": [
+   "Images"
+  ],
+  "Rodin3D_Sketch": [
+   "Images",
+   "Seed"
+  ],
+  "Rodin3D_Smooth": [
+   "Images"
+  ],
+  "RunwayAleph2KeyframeNode": [
+   "image",
+   "timing",
+   "keyframes",
+   "seconds",
+   "fraction"
+  ],
+  "RunwayAleph2PromptImageNode": [
+   "image",
+   "position",
+   "prompt_images",
+   "seconds",
+   "fraction"
+  ],
+  "RunwayAleph2VideoToVideoNode": [
+   "prompt",
+   "video",
+   "seed",
+   "public_figure_threshold",
+   "keyframes",
+   "prompt_images"
+  ],
+  "RunwayFirstLastFrameNode": [
+   "prompt",
+   "start_frame",
+   "end_frame",
+   "duration",
+   "ratio",
+   "seed"
+  ],
+  "RunwayImageToVideoNodeGen3a": [
+   "prompt",
+   "start_frame",
+   "duration",
+   "ratio",
+   "seed"
+  ],
+  "RunwayImageToVideoNodeGen4": [
+   "prompt",
+   "start_frame",
+   "duration",
+   "ratio",
+   "seed"
+  ],
+  "RunwayTextToImageNode": [
+   "prompt",
+   "ratio",
+   "reference_image"
+  ],
+  "SAM3_Detect": [
+   "model",
+   "image",
+   "conditioning",
+   "bboxes",
+   "positive_coords",
+   "negative_coords",
+   "threshold",
+   "refine_iterations",
+   "individual_masks"
+  ],
+  "SAM3_TrackPreview": [
+   "track_data",
+   "images",
+   "opacity",
+   "fps"
+  ],
+  "SAM3_TrackToMask": [
+   "track_data",
+   "object_indices"
+  ],
+  "SAM3_VideoTrack": [
+   "images",
+   "model",
+   "initial_mask",
+   "conditioning",
+   "detection_threshold",
+   "max_objects",
+   "detect_interval"
+  ],
+  "SCAIL2ColoredMask": [
+   "driving_track_data",
+   "ref_track_data",
+   "object_indices",
+   "sort_by",
+   "replacement_mode"
+  ],
+  "SDPoseDrawKeypoints": [
+   "keypoints",
+   "draw_body",
+   "draw_hands",
+   "draw_face",
+   "draw_feet",
+   "stick_width",
+   "face_point_size",
+   "score_threshold",
+   "draw_head"
+  ],
+  "SDPoseFaceBBoxes": [
+   "keypoints",
+   "scale",
+   "force_square"
+  ],
+  "SDPoseKeypointExtractor": [
+   "model",
+   "vae",
+   "image",
+   "batch_size",
+   "bboxes"
+  ],
+  "SDTurboScheduler": [
+   "model",
+   "steps",
+   "denoise"
+  ],
+  "SD_4XUpscale_Conditioning": [
+   "images",
+   "positive",
+   "negative",
+   "scale_ratio",
+   "noise_augmentation"
+  ],
+  "SUPIRApply": [
+   "model",
+   "model_patch",
+   "vae",
+   "image",
+   "strength_start",
+   "strength_end",
+   "restore_cfg",
+   "restore_cfg_s_tmin"
+  ],
+  "SV3D_Conditioning": [
+   "clip_vision",
+   "init_image",
+   "vae",
+   "width",
+   "height",
+   "video_frames",
+   "elevation"
+  ],
+  "SVD_img2vid_Conditioning": [
+   "clip_vision",
+   "init_image",
+   "vae",
+   "width",
+   "height",
+   "video_frames",
+   "motion_bucket_id",
+   "fps",
+   "augmentation_level"
+  ],
+  "SamplerARVideo": [
+   "num_frame_per_block"
+  ],
+  "SamplerCustom": [
+   "model",
+   "add_noise",
+   "noise_seed",
+   "cfg",
+   "positive",
+   "negative",
+   "sampler",
+   "sigmas",
+   "latent_image"
+  ],
+  "SamplerCustomAdvanced": [
+   "noise",
+   "guider",
+   "sampler",
+   "sigmas",
+   "latent_image"
+  ],
+  "SamplerDPMAdaptative": [
+   "order",
+   "rtol",
+   "atol",
+   "h_init",
+   "pcoeff",
+   "icoeff",
+   "dcoeff",
+   "accept_safety",
+   "eta",
+   "s_noise"
+  ],
+  "SamplerDPMPP_2M_SDE": [
+   "solver_type",
+   "eta",
+   "s_noise",
+   "noise_device"
+  ],
+  "SamplerDPMPP_2S_Ancestral": [
+   "eta",
+   "s_noise"
+  ],
+  "SamplerDPMPP_3M_SDE": [
+   "eta",
+   "s_noise",
+   "noise_device"
+  ],
+  "SamplerDPMPP_SDE": [
+   "eta",
+   "s_noise",
+   "r",
+   "noise_device"
+  ],
+  "SamplerER_SDE": [
+   "solver_type",
+   "max_stage",
+   "eta",
+   "s_noise"
+  ],
+  "SamplerEulerAncestral": [
+   "eta",
+   "s_noise"
+  ],
+  "SamplerEulerAncestralCFGPP": [
+   "eta",
+   "s_noise"
+  ],
+  "SamplerEulerCFGpp": [
+   "version"
+  ],
+  "SamplerLCM": [
+   "s_noise",
+   "s_noise_end",
+   "noise_clip_std"
+  ],
+  "SamplerLCMUpscale": [
+   "scale_ratio",
+   "scale_steps",
+   "upscale_method"
+  ],
+  "SamplerLMS": [
+   "order"
+  ],
+  "SamplerSASolver": [
+   "model",
+   "eta",
+   "sde_start_percent",
+   "sde_end_percent",
+   "s_noise",
+   "predictor_order",
+   "corrector_order",
+   "use_pece",
+   "simple_order_2"
+  ],
+  "SamplerSEEDS2": [
+   "solver_type",
+   "eta",
+   "s_noise",
+   "r"
+  ],
+  "SamplingPercentToSigma": [
+   "model",
+   "sampling_percent",
+   "return_actual_sigma"
+  ],
+  "Save3DAdvanced": [
+   "model_3d",
+   "filename_prefix",
+   "viewport_state",
+   "model_3d_info",
+   "camera_info",
+   "width",
+   "height"
+  ],
+  "SaveAnimatedPNG": [
+   "images",
+   "filename_prefix",
+   "fps",
+   "compress_level"
+  ],
+  "SaveAnimatedWEBP": [
+   "images",
+   "filename_prefix",
+   "fps",
+   "lossless",
+   "quality",
+   "method"
+  ],
+  "SaveAudio": [
+   "audio",
+   "filename_prefix"
+  ],
+  "SaveAudioAdvanced": [
+   "audio",
+   "filename_prefix",
+   "format",
+   "quality",
+   "quality"
+  ],
+  "SaveAudioMP3": [
+   "audio",
+   "filename_prefix",
+   "quality"
+  ],
+  "SaveAudioOpus": [
+   "audio",
+   "filename_prefix",
+   "quality"
+  ],
+  "SaveGLB": [
+   "filename_prefix",
+   "mesh"
+  ],
+  "SaveGaussianSplat": [
+   "model_3d",
+   "filename_prefix",
+   "viewport_state",
+   "model_3d_info",
+   "camera_info",
+   "width",
+   "height"
+  ],
+  "SaveImage": [
+   "images",
+   "filename_prefix"
+  ],
+  "SaveImageAdvanced": [
+   "images",
+   "filename_prefix",
+   "format",
+   "bit_depth",
+   "input_color_space",
+   "bit_depth",
+   "input_color_space"
+  ],
+  "SaveImageDataSetToFolder": [
+   "images",
+   "folder_name",
+   "filename_prefix",
+   "mode"
+  ],
+  "SaveImageTextDataSetToFolder": [
+   "images",
+   "texts",
+   "folder_name",
+   "filename_prefix",
+   "mode"
+  ],
+  "SaveLatent": [
+   "samples",
+   "filename_prefix"
+  ],
+  "SaveLoRA": [
+   "lora",
+   "prefix",
+   "steps"
+  ],
+  "SavePointCloud": [
+   "model_3d",
+   "filename_prefix",
+   "viewport_state",
+   "model_3d_info",
+   "camera_info",
+   "width",
+   "height"
+  ],
+  "SaveSVGNode": [
+   "svg",
+   "filename_prefix"
+  ],
+  "SaveText": [
+   "text",
+   "filename_prefix",
+   "format"
+  ],
+  "SaveTrainingDataset": [
+   "latents",
+   "conditioning",
+   "folder_name",
+   "shard_size"
+  ],
+  "SaveVideo": [
+   "video",
+   "filename_prefix",
+   "format",
+   "codec",
+   "encoding",
+   "crf"
+  ],
+  "SaveWEBM": [
+   "images",
+   "filename_prefix",
+   "codec",
+   "fps",
+   "crf"
+  ],
+  "ScaleROPE": [
+   "model",
+   "scale_x",
+   "shift_x",
+   "scale_y",
+   "shift_y",
+   "scale_t",
+   "shift_t"
+  ],
+  "SeedNode": [
+   "seed"
+  ],
+  "SeedVR2Conditioning": [
+   "model",
+   "vae_conditioning"
+  ],
+  "SeedVR2PostProcessing": [
+   "images",
+   "original_resized_images",
+   "color_correction_method"
+  ],
+  "SeedVR2Preprocess": [
+   "resized_images"
+  ],
+  "SeedVR2TemporalChunk": [
+   "latent",
+   "temporal_overlap",
+   "chunking_mode",
+   "frames_per_chunk"
+  ],
+  "SeedVR2TemporalMerge": [
+   "latents",
+   "temporal_overlap"
+  ],
+  "SelectCLIPDevice": [
+   "clip",
+   "device"
+  ],
+  "SelectModelDevice": [
+   "model",
+   "device"
+  ],
+  "SelectVAEDevice": [
+   "vae",
+   "device"
+  ],
+  "SelfAttentionGuidance": [
+   "model",
+   "scale",
+   "blur_sigma"
+  ],
+  "SetFirstSigma": [
+   "sigmas",
+   "sigma"
+  ],
+  "SetLatentNoiseMask": [
+   "samples",
+   "mask"
+  ],
+  "SetUnionControlNetType": [
+   "control_net",
+   "type"
+  ],
+  "ShuffleImageTextDataset": [
+   "images",
+   "texts",
+   "seed"
+  ],
+  "ShuffleVideoDataset": [
+   "videos",
+   "seed"
+  ],
+  "ShuffleVideoTextDataset": [
+   "videos",
+   "texts",
+   "seed"
+  ],
+  "SkipLayerGuidanceDiT": [
+   "model",
+   "double_layers",
+   "single_layers",
+   "scale",
+   "start_percent",
+   "end_percent",
+   "rescaling_scale"
+  ],
+  "SkipLayerGuidanceDiTSimple": [
+   "model",
+   "double_layers",
+   "single_layers",
+   "start_percent",
+   "end_percent"
+  ],
+  "SkipLayerGuidanceSD3": [
+   "model",
+   "layers",
+   "scale",
+   "start_percent",
+   "end_percent"
+  ],
+  "SolidMask": [
+   "value",
+   "width",
+   "height"
+  ],
+  "SoniloTextToMusic": [
+   "prompt",
+   "duration",
+   "seed"
+  ],
+  "SoniloVideoToMusic": [
+   "video",
+   "prompt",
+   "seed"
+  ],
+  "SplatToFile3D": [
+   "splat",
+   "format"
+  ],
+  "SplatToMesh": [
+   "splat",
+   "resolution",
+   "kernel",
+   "smooth",
+   "level",
+   "min_component",
+   "min_opacity",
+   "color_sharpen"
+  ],
+  "SplitAudioChannels": [
+   "audio"
+  ],
+  "SplitImageToTileList": [
+   "image",
+   "tile_width",
+   "tile_height",
+   "overlap"
+  ],
+  "SplitImageWithAlpha": [
+   "image"
+  ],
+  "SplitSigmas": [
+   "sigmas",
+   "step"
+  ],
+  "SplitSigmasDenoise": [
+   "sigmas",
+   "denoise"
+  ],
+  "StableCascade_EmptyLatentImage": [
+   "width",
+   "height",
+   "compression",
+   "batch_size"
+  ],
+  "StableCascade_StageB_Conditioning": [
+   "conditioning",
+   "stage_c"
+  ],
+  "StableCascade_StageC_VAEEncode": [
+   "image",
+   "vae",
+   "compression"
+  ],
+  "StableCascade_SuperResolutionControlnet": [
+   "image",
+   "vae"
+  ],
+  "StableZero123_Conditioning": [
+   "clip_vision",
+   "init_image",
+   "vae",
+   "width",
+   "height",
+   "batch_size",
+   "elevation",
+   "azimuth"
+  ],
+  "StableZero123_Conditioning_Batched": [
+   "clip_vision",
+   "init_image",
+   "vae",
+   "width",
+   "height",
+   "batch_size",
+   "elevation",
+   "azimuth",
+   "elevation_batch_increment",
+   "azimuth_batch_increment"
+  ],
+  "StringCompare": [
+   "string_a",
+   "string_b",
+   "mode",
+   "case_sensitive"
+  ],
+  "StringConcatenate": [
+   "string_a",
+   "string_b",
+   "delimiter"
+  ],
+  "StringContains": [
+   "string",
+   "substring",
+   "case_sensitive"
+  ],
+  "StringFormat": [
+   "values",
+   "f_string"
+  ],
+  "StringLength": [
+   "string"
+  ],
+  "StringReplace": [
+   "string",
+   "find",
+   "replace"
+  ],
+  "StringSubstring": [
+   "string",
+   "start",
+   "end"
+  ],
+  "StringTrim": [
+   "string",
+   "mode"
+  ],
+  "StyleModelApply": [
+   "conditioning",
+   "style_model",
+   "clip_vision_output",
+   "strength",
+   "strength_type"
+  ],
+  "StyleModelLoader": [
+   "style_model_name"
+  ],
+  "SyncLipSyncNode": [
+   "video",
+   "audio",
+   "seed",
+   "model",
+   "sync_mode",
+   "speaker_selection",
+   "speaker_frame",
+   "speaker_x",
+   "speaker_y"
+  ],
+  "SyncTalkingImageNode": [
+   "image",
+   "audio",
+   "prompt",
+   "seed",
+   "model",
+   "speaker_selection",
+   "speaker_x",
+   "speaker_y",
+   "auto_downscale"
+  ],
+  "T5TokenizerOptions": [
+   "clip",
+   "min_padding",
+   "min_length"
+  ],
+  "TCFG": [
+   "model"
+  ],
+  "TemporalScoreRescaling": [
+   "model",
+   "tsr_k",
+   "tsr_sigma"
+  ],
+  "Tencent3DPartNode": [
+   "model_3d",
+   "seed"
+  ],
+  "Tencent3DTextureEditNode": [
+   "model_3d",
+   "prompt",
+   "seed"
+  ],
+  "TencentImageToModelNode": [
+   "model",
+   "image",
+   "image_left",
+   "image_right",
+   "image_back",
+   "face_count",
+   "generate_type",
+   "seed",
+   "pbr",
+   "polygon_type",
+   "pbr"
+  ],
+  "TencentModelTo3DUVNode": [
+   "model_3d",
+   "seed"
+  ],
+  "TencentSmartTopologyNode": [
+   "model_3d",
+   "polygon_type",
+   "face_level",
+   "seed"
+  ],
+  "TencentTextToModelNode": [
+   "model",
+   "prompt",
+   "face_count",
+   "generate_type",
+   "seed",
+   "pbr",
+   "polygon_type",
+   "pbr"
+  ],
+  "TextEncodeAceStepAudio": [
+   "clip",
+   "tags",
+   "lyrics",
+   "lyrics_strength"
+  ],
+  "TextEncodeAceStepAudio1.5": [
+   "clip",
+   "tags",
+   "lyrics",
+   "seed",
+   "bpm",
+   "duration",
+   "timesignature",
+   "language",
+   "keyscale",
+   "generate_audio_codes",
+   "cfg_scale",
+   "temperature",
+   "top_p",
+   "top_k",
+   "min_p"
+  ],
+  "TextEncodeBooguEdit": [
+   "clip",
+   "prompt",
+   "negative_prompt",
+   "vae",
+   "images",
+   "image"
+  ],
+  "TextEncodeHunyuanVideo_ImageToVideo": [
+   "clip",
+   "clip_vision_output",
+   "prompt",
+   "image_interleave"
+  ],
+  "TextEncodeJoyImageEdit": [
+   "clip",
+   "prompt",
+   "vae",
+   "images"
+  ],
+  "TextEncodeMageFlowEdit": [
+   "clip",
+   "prompt",
+   "negative_prompt",
+   "vae",
+   "images",
+   "width",
+   "height",
+   "batch_size",
+   "image"
+  ],
+  "TextEncodeQwenImageEdit": [
+   "clip",
+   "prompt",
+   "vae",
+   "image"
+  ],
+  "TextEncodeQwenImageEditPlus": [
+   "clip",
+   "prompt",
+   "vae",
+   "image1",
+   "image2",
+   "image3"
+  ],
+  "TextEncodeZImageOmni": [
+   "clip",
+   "image_encoder",
+   "prompt",
+   "auto_resize_images",
+   "vae",
+   "image1",
+   "image2",
+   "image3"
+  ],
+  "TextGenerate": [
+   "clip",
+   "prompt",
+   "image",
+   "video",
+   "audio",
+   "max_length",
+   "sampling_mode",
+   "thinking",
+   "use_default_template"
+  ],
+  "TextOverlay": [
+   "images",
+   "text",
+   "font_size",
+   "color",
+   "position",
+   "align",
+   "outline"
+  ],
+  "ThresholdMask": [
+   "mask",
+   "value"
+  ],
+  "TomePatchModel": [
+   "model",
+   "ratio"
+  ],
+  "TopazImageEnhance": [
+   "model",
+   "image",
+   "prompt",
+   "subject_detection",
+   "face_enhancement",
+   "face_enhancement_creativity",
+   "face_enhancement_strength",
+   "crop_to_fill",
+   "output_width",
+   "output_height",
+   "creativity",
+   "face_preservation",
+   "color_preservation"
+  ],
+  "TopazImageEnhanceV2": [
+   "image",
+   "model",
+   "output_width",
+   "output_height",
+   "prompt",
+   "creativity",
+   "subject_detection",
+   "face_enhancement",
+   "face_enhancement_creativity",
+   "face_enhancement_strength",
+   "face_preservation",
+   "color_preservation",
+   "crop_to_fill",
+   "prompt",
+   "creativity",
+   "seed",
+   "color_preservation",
+   "grain",
+   "grain_model",
+   "grain_strength",
+   "grain_size",
+   "grain_density",
+   "enhancement_strength",
+   "grain",
+   "grain_model",
+   "grain_strength",
+   "grain_size",
+   "grain_density"
+  ],
+  "TopazVideoEnhance": [
+   "video",
+   "upscaler_enabled",
+   "upscaler_model",
+   "upscaler_resolution",
+   "upscaler_creativity",
+   "interpolation_enabled",
+   "interpolation_model",
+   "interpolation_slowmo",
+   "interpolation_frame_rate",
+   "interpolation_duplicate",
+   "interpolation_duplicate_threshold",
+   "dynamic_compression_level"
+  ],
+  "TopazVideoEnhanceV2": [
+   "video",
+   "upscaler_model",
+   "interpolation_model",
+   "dynamic_compression_level",
+   "upscaler_resolution",
+   "creativity",
+   "prompt",
+   "sharp",
+   "realism",
+   "upscaler_resolution",
+   "upscaler_resolution",
+   "creativity",
+   "upscaler_resolution",
+   "interpolation_frame_rate",
+   "interpolation_slowmo",
+   "interpolation_duplicate",
+   "interpolation_duplicate_threshold"
+  ],
+  "TorchCompileModel": [
+   "model",
+   "backend"
+  ],
+  "TrainLoraNode": [
+   "model",
+   "latents",
+   "positive",
+   "batch_size",
+   "grad_accumulation_steps",
+   "steps",
+   "learning_rate",
+   "rank",
+   "optimizer",
+   "loss_function",
+   "seed",
+   "training_dtype",
+   "lora_dtype",
+   "quantized_backward",
+   "algorithm",
+   "gradient_checkpointing",
+   "checkpoint_depth",
+   "offloading",
+   "existing_lora",
+   "bucket_mode",
+   "bypass_mode"
+  ],
+  "TransformSplat": [
+   "splat",
+   "translate_x",
+   "translate_y",
+   "translate_z",
+   "rotate_x",
+   "rotate_y",
+   "rotate_z",
+   "scale_x",
+   "scale_y",
+   "scale_z"
+  ],
+  "TrimAudioDuration": [
+   "audio",
+   "start_index",
+   "duration"
+  ],
+  "TrimVideoLatent": [
+   "samples",
+   "trim_amount"
+  ],
+  "TripleCLIPLoader": [
+   "clip_name1",
+   "clip_name2",
+   "clip_name3"
+  ],
+  "TripoConversionNode": [
+   "original_model_task_id",
+   "format",
+   "quad",
+   "face_limit",
+   "texture_size",
+   "texture_format",
+   "force_symmetry",
+   "flatten_bottom",
+   "flatten_bottom_threshold",
+   "pivot_to_center_bottom",
+   "scale_factor",
+   "with_animation",
+   "pack_uv",
+   "bake",
+   "part_names",
+   "fbx_preset",
+   "export_vertex_colors",
+   "export_orientation",
+   "animate_in_place"
+  ],
+  "TripoImageToModelNode": [
+   "image",
+   "model_version",
+   "style",
+   "texture",
+   "pbr",
+   "model_seed",
+   "orientation",
+   "texture_seed",
+   "texture_quality",
+   "texture_alignment",
+   "face_limit",
+   "quad",
+   "geometry_quality"
+  ],
+  "TripoImportModelNode": [
+   "model_3d"
+  ],
+  "TripoMultiviewToModelNode": [
+   "image",
+   "image_left",
+   "image_back",
+   "image_right",
+   "model_version",
+   "orientation",
+   "texture",
+   "pbr",
+   "model_seed",
+   "texture_seed",
+   "texture_quality",
+   "texture_alignment",
+   "face_limit",
+   "quad",
+   "geometry_quality"
+  ],
+  "TripoP1ImageToModelNode": [
+   "image",
+   "enable_image_autofix"
+  ],
+  "TripoP1MultiviewToModelNode": [
+   "image",
+   "image_left",
+   "image_back",
+   "image_right"
+  ],
+  "TripoP1TextToModelNode": [
+   "prompt",
+   "negative_prompt",
+   "image_seed"
+  ],
+  "TripoRefineNode": [
+   "model_task_id"
+  ],
+  "TripoRetargetNode": [
+   "original_model_task_id",
+   "animation"
+  ],
+  "TripoRigNode": [
+   "original_model_task_id"
+  ],
+  "TripoSplatConditioning": [
+   "clip_vision",
+   "vae",
+   "image"
+  ],
+  "TripoSplatPreprocessImage": [
+   "image",
+   "mask",
+   "erode_radius",
+   "size"
+  ],
+  "TripoSplatSamplingPreview": [
+   "model",
+   "vae",
+   "octree_level",
+   "num_gaussians",
+   "yaw",
+   "pitch",
+   "point_size"
+  ],
+  "TripoTextToModelNode": [
+   "prompt",
+   "negative_prompt",
+   "model_version",
+   "style",
+   "texture",
+   "pbr",
+   "image_seed",
+   "model_seed",
+   "texture_seed",
+   "texture_quality",
+   "face_limit",
+   "quad",
+   "geometry_quality"
+  ],
+  "TripoTextureNode": [
+   "model_task_id",
+   "texture",
+   "pbr",
+   "texture_seed",
+   "texture_quality",
+   "texture_alignment",
+   "texture_prompt"
+  ],
+  "UNETLoader": [
+   "unet_name",
+   "weight_dtype"
+  ],
+  "UNetCrossAttentionMultiply": [
+   "model",
+   "q",
+   "k",
+   "v",
+   "out"
+  ],
+  "UNetSelfAttentionMultiply": [
+   "model",
+   "q",
+   "k",
+   "v",
+   "out"
+  ],
+  "UNetTemporalAttentionMultiply": [
+   "model",
+   "self_structural",
+   "self_temporal",
+   "cross_structural",
+   "cross_temporal"
+  ],
+  "USOStyleReference": [
+   "model",
+   "model_patch",
+   "clip_vision_output"
+  ],
+  "UpscaleModelLoader": [
+   "model_name"
+  ],
+  "VAEDecode": [
+   "samples",
+   "vae"
+  ],
+  "VAEDecodeAudio": [
+   "samples",
+   "vae"
+  ],
+  "VAEDecodeAudioTiled": [
+   "samples",
+   "vae",
+   "tile_size",
+   "overlap"
+  ],
+  "VAEDecodeHunyuan3D": [
+   "samples",
+   "vae",
+   "num_chunks",
+   "octree_resolution"
+  ],
+  "VAEDecodeTiled": [
+   "samples",
+   "vae",
+   "tile_size",
+   "overlap",
+   "temporal_size",
+   "temporal_overlap"
+  ],
+  "VAEDecodeTripoSplat": [
+   "samples",
+   "vae",
+   "num_gaussians",
+   "seed"
+  ],
+  "VAEEncode": [
+   "pixels",
+   "vae"
+  ],
+  "VAEEncodeAudio": [
+   "audio",
+   "vae"
+  ],
+  "VAEEncodeForInpaint": [
+   "pixels",
+   "vae",
+   "mask",
+   "grow_mask_by"
+  ],
+  "VAEEncodeTiled": [
+   "pixels",
+   "vae",
+   "tile_size",
+   "overlap",
+   "temporal_size",
+   "temporal_overlap"
+  ],
+  "VAELoader": [
+   "vae_name"
+  ],
+  "VAESave": [
+   "vae",
+   "filename_prefix"
+  ],
+  "VOIDInpaintConditioning": [
+   "positive",
+   "negative",
+   "vae",
+   "video",
+   "quadmask",
+   "width",
+   "height",
+   "length",
+   "batch_size"
+  ],
+  "VOIDQuadmaskPreprocess": [
+   "mask",
+   "dilate_width"
+  ],
+  "VOIDWarpedNoise": [
+   "optical_flow",
+   "video",
+   "width",
+   "height",
+   "length",
+   "batch_size"
+  ],
+  "VOIDWarpedNoiseSource": [
+   "warped_noise"
+  ],
+  "VPScheduler": [
+   "steps",
+   "beta_d",
+   "beta_min",
+   "eps_s"
+  ],
+  "Veo3FirstLastFrameNode": [
+   "prompt",
+   "negative_prompt",
+   "resolution",
+   "aspect_ratio",
+   "duration",
+   "seed",
+   "first_frame",
+   "last_frame",
+   "model",
+   "generate_audio"
+  ],
+  "Veo3VideoGenerationNode": [
+   "prompt",
+   "aspect_ratio",
+   "resolution",
+   "negative_prompt",
+   "duration_seconds",
+   "enhance_prompt",
+   "person_generation",
+   "seed",
+   "image",
+   "model",
+   "generate_audio"
+  ],
+  "VeoVideoGenerationNode": [
+   "prompt",
+   "aspect_ratio",
+   "negative_prompt",
+   "duration_seconds",
+   "enhance_prompt",
+   "person_generation",
+   "seed",
+   "image",
+   "model"
+  ],
+  "Video Slice": [
+   "video",
+   "start_time",
+   "duration",
+   "strict_duration"
+  ],
+  "VideoFrameSample": [
+   "video",
+   "num_frames",
+   "strategy",
+   "seed"
+  ],
+  "VideoLinearCFGGuidance": [
+   "model",
+   "min_cfg"
+  ],
+  "VideoRandomTemporalCrop": [
+   "video",
+   "length",
+   "seed"
+  ],
+  "VideoTemporalCrop": [
+   "video",
+   "start_frame",
+   "length"
+  ],
+  "VideoTriangleCFGGuidance": [
+   "model",
+   "min_cfg"
+  ],
+  "Vidu2ImageToVideoNode": [
+   "model",
+   "image",
+   "prompt",
+   "duration",
+   "seed",
+   "resolution",
+   "movement_amplitude"
+  ],
+  "Vidu2ReferenceVideoNode": [
+   "model",
+   "subjects",
+   "prompt",
+   "audio",
+   "duration",
+   "seed",
+   "aspect_ratio",
+   "resolution",
+   "movement_amplitude",
+   "reference_images"
+  ],
+  "Vidu2StartEndToVideoNode": [
+   "model",
+   "first_frame",
+   "end_frame",
+   "prompt",
+   "duration",
+   "seed",
+   "resolution",
+   "movement_amplitude"
+  ],
+  "Vidu2TextToVideoNode": [
+   "model",
+   "prompt",
+   "duration",
+   "seed",
+   "aspect_ratio",
+   "resolution",
+   "background_music"
+  ],
+  "Vidu3ImageToVideoNode": [
+   "model",
+   "image",
+   "prompt",
+   "seed",
+   "resolution",
+   "duration",
+   "audio",
+   "resolution",
+   "duration",
+   "audio"
+  ],
+  "Vidu3StartEndToVideoNode": [
+   "model",
+   "first_frame",
+   "end_frame",
+   "prompt",
+   "seed",
+   "resolution",
+   "duration",
+   "audio",
+   "resolution",
+   "duration",
+   "audio"
+  ],
+  "Vidu3TextToVideoNode": [
+   "model",
+   "prompt",
+   "seed",
+   "aspect_ratio",
+   "resolution",
+   "duration",
+   "audio",
+   "aspect_ratio",
+   "resolution",
+   "duration",
+   "audio"
+  ],
+  "ViduExtendVideoNode": [
+   "model",
+   "video",
+   "prompt",
+   "seed",
+   "end_frame",
+   "duration",
+   "resolution",
+   "duration",
+   "resolution"
+  ],
+  "ViduImageToVideoNode": [
+   "model",
+   "image",
+   "prompt",
+   "duration",
+   "seed",
+   "resolution",
+   "movement_amplitude"
+  ],
+  "ViduMultiFrameVideoNode": [
+   "model",
+   "start_image",
+   "seed",
+   "resolution",
+   "frames"
+  ],
+  "ViduReferenceVideoNode": [
+   "model",
+   "images",
+   "prompt",
+   "duration",
+   "seed",
+   "aspect_ratio",
+   "resolution",
+   "movement_amplitude"
+  ],
+  "ViduStartEndToVideoNode": [
+   "model",
+   "first_frame",
+   "end_frame",
+   "prompt",
+   "duration",
+   "seed",
+   "resolution",
+   "movement_amplitude"
+  ],
+  "ViduTextToVideoNode": [
+   "model",
+   "prompt",
+   "duration",
+   "seed",
+   "aspect_ratio",
+   "resolution",
+   "movement_amplitude"
+  ],
+  "VoxelToMesh": [
+   "voxel",
+   "algorithm",
+   "threshold"
+  ],
+  "VoxelToMeshBasic": [
+   "voxel",
+   "threshold"
+  ],
+  "Wan22FunControlToVideo": [
+   "positive",
+   "negative",
+   "vae",
+   "width",
+   "height",
+   "length",
+   "batch_size",
+   "ref_image",
+   "control_video"
+  ],
+  "Wan22ImageToVideoLatent": [
+   "vae",
+   "width",
+   "height",
+   "length",
+   "batch_size",
+   "start_image"
+  ],
+  "Wan2ImageToVideoApi": [
+   "model",
+   "first_frame",
+   "last_frame",
+   "audio",
+   "seed",
+   "prompt_extend",
+   "watermark",
+   "prompt",
+   "negative_prompt",
+   "resolution",
+   "duration"
+  ],
+  "Wan2ReferenceVideoApi": [
+   "model",
+   "seed",
+   "watermark",
+   "prompt",
+   "negative_prompt",
+   "resolution",
+   "ratio",
+   "duration",
+   "reference_videos",
+   "reference_images",
+   "reference_video",
+   "reference_image"
+  ],
+  "Wan2TextToVideoApi": [
+   "model",
+   "audio",
+   "seed",
+   "prompt_extend",
+   "watermark",
+   "prompt",
+   "negative_prompt",
+   "resolution",
+   "ratio",
+   "duration"
+  ],
+  "Wan2VideoContinuationApi": [
+   "model",
+   "first_clip",
+   "last_frame",
+   "seed",
+   "prompt_extend",
+   "watermark",
+   "prompt",
+   "negative_prompt",
+   "resolution",
+   "duration"
+  ],
+  "Wan2VideoEditApi": [
+   "model",
+   "video",
+   "seed",
+   "audio_setting",
+   "watermark",
+   "prompt",
+   "resolution",
+   "ratio",
+   "duration",
+   "reference_images",
+   "reference_image"
+  ],
+  "WanAnimateToVideo": [
+   "positive",
+   "negative",
+   "vae",
+   "width",
+   "height",
+   "length",
+   "batch_size",
+   "clip_vision_output",
+   "reference_image",
+   "face_video",
+   "pose_video",
+   "continue_motion_max_frames",
+   "background_video",
+   "character_mask",
+   "continue_motion",
+   "video_frame_offset"
+  ],
+  "WanCameraEmbedding": [
+   "camera_pose",
+   "width",
+   "height",
+   "length",
+   "speed",
+   "fx",
+   "fy",
+   "cx",
+   "cy"
+  ],
+  "WanCameraImageToVideo": [
+   "positive",
+   "negative",
+   "vae",
+   "width",
+   "height",
+   "length",
+   "batch_size",
+   "clip_vision_output",
+   "start_image",
+   "camera_conditions"
+  ],
+  "WanDancerEncodeAudio": [
+   "audio",
+   "video_frames",
+   "audio_inject_scale"
+  ],
+  "WanDancerPadKeyframes": [
+   "images",
+   "segment_length",
+   "segment_index",
+   "audio"
+  ],
+  "WanDancerPadKeyframesList": [
+   "images",
+   "segment_length",
+   "num_segments",
+   "audio"
+  ],
+  "WanDancerVideo": [
+   "positive",
+   "negative",
+   "vae",
+   "width",
+   "height",
+   "length",
+   "clip_vision_output",
+   "clip_vision_output_ref",
+   "start_image",
+   "mask",
+   "audio_encoder_output"
+  ],
+  "WanFirstLastFrameToVideo": [
+   "positive",
+   "negative",
+   "vae",
+   "width",
+   "height",
+   "length",
+   "batch_size",
+   "clip_vision_start_image",
+   "clip_vision_end_image",
+   "start_image",
+   "end_image"
+  ],
+  "WanFunControlToVideo": [
+   "positive",
+   "negative",
+   "vae",
+   "width",
+   "height",
+   "length",
+   "batch_size",
+   "clip_vision_output",
+   "start_image",
+   "control_video"
+  ],
+  "WanFunInpaintToVideo": [
+   "positive",
+   "negative",
+   "vae",
+   "width",
+   "height",
+   "length",
+   "batch_size",
+   "clip_vision_output",
+   "start_image",
+   "end_image"
+  ],
+  "WanHuMoImageToVideo": [
+   "positive",
+   "negative",
+   "vae",
+   "width",
+   "height",
+   "length",
+   "batch_size",
+   "audio_encoder_output",
+   "ref_image"
+  ],
+  "WanImageToImageApi": [
+   "model",
+   "image",
+   "prompt",
+   "negative_prompt",
+   "seed",
+   "watermark"
+  ],
+  "WanImageToVideo": [
+   "positive",
+   "negative",
+   "vae",
+   "width",
+   "height",
+   "length",
+   "batch_size",
+   "clip_vision_output",
+   "start_image"
+  ],
+  "WanImageToVideoApi": [
+   "model",
+   "image",
+   "prompt",
+   "negative_prompt",
+   "resolution",
+   "duration",
+   "audio",
+   "seed",
+   "generate_audio",
+   "prompt_extend",
+   "watermark",
+   "shot_type"
+  ],
+  "WanInfiniteTalkToVideo": [
+   "mode",
+   "model",
+   "model_patch",
+   "positive",
+   "negative",
+   "vae",
+   "width",
+   "height",
+   "length",
+   "clip_vision_output",
+   "start_image",
+   "audio_encoder_output_1",
+   "motion_frame_count",
+   "audio_scale",
+   "previous_frames",
+   "audio_encoder_output_2",
+   "mask_1",
+   "mask_2"
+  ],
+  "WanMoveConcatTrack": [
+   "tracks_1",
+   "tracks_2"
+  ],
+  "WanMoveTrackToVideo": [
+   "positive",
+   "negative",
+   "vae",
+   "tracks",
+   "strength",
+   "width",
+   "height",
+   "length",
+   "batch_size",
+   "start_image",
+   "clip_vision_output"
+  ],
+  "WanMoveTracksFromCoords": [
+   "track_coords",
+   "track_mask"
+  ],
+  "WanMoveVisualizeTracks": [
+   "images",
+   "tracks",
+   "line_resolution",
+   "circle_size",
+   "opacity",
+   "line_width"
+  ],
+  "WanPhantomSubjectToVideo": [
+   "positive",
+   "negative",
+   "vae",
+   "width",
+   "height",
+   "length",
+   "batch_size",
+   "images"
+  ],
+  "WanReferenceVideoApi": [
+   "model",
+   "prompt",
+   "negative_prompt",
+   "reference_videos",
+   "size",
+   "duration",
+   "seed",
+   "shot_type",
+   "watermark",
+   "reference_video"
+  ],
+  "WanSCAILToVideo": [
+   "positive",
+   "negative",
+   "vae",
+   "width",
+   "height",
+   "length",
+   "batch_size",
+   "pose_video",
+   "pose_video_mask",
+   "replacement_mode",
+   "pose_strength",
+   "pose_start",
+   "pose_end",
+   "reference_image",
+   "reference_image_mask",
+   "clip_vision_output",
+   "video_frame_offset",
+   "previous_frame_count",
+   "previous_frames"
+  ],
+  "WanSoundImageToVideo": [
+   "positive",
+   "negative",
+   "vae",
+   "width",
+   "height",
+   "length",
+   "batch_size",
+   "audio_encoder_output",
+   "ref_image",
+   "control_video",
+   "ref_motion"
+  ],
+  "WanSoundImageToVideoExtend": [
+   "positive",
+   "negative",
+   "vae",
+   "length",
+   "video_latent",
+   "audio_encoder_output",
+   "ref_image",
+   "control_video"
+  ],
+  "WanTextToImageApi": [
+   "model",
+   "prompt",
+   "negative_prompt",
+   "width",
+   "height",
+   "seed",
+   "prompt_extend",
+   "watermark"
+  ],
+  "WanTextToVideoApi": [
+   "model",
+   "prompt",
+   "negative_prompt",
+   "size",
+   "duration",
+   "audio",
+   "seed",
+   "generate_audio",
+   "prompt_extend",
+   "watermark",
+   "shot_type"
+  ],
+  "WanTrackToVideo": [
+   "positive",
+   "negative",
+   "vae",
+   "tracks",
+   "width",
+   "height",
+   "length",
+   "batch_size",
+   "temperature",
+   "topk",
+   "start_image",
+   "clip_vision_output"
+  ],
+  "WanUni3CControlnetApply": [
+   "model",
+   "model_patch",
+   "vae",
+   "render_video",
+   "strength",
+   "start_percent",
+   "end_percent"
+  ],
+  "WanVaceToVideo": [
+   "positive",
+   "negative",
+   "vae",
+   "width",
+   "height",
+   "length",
+   "batch_size",
+   "strength",
+   "control_video",
+   "control_masks",
+   "reference_image"
+  ],
+  "WavespeedFlashVSRNode": [
+   "video",
+   "target_resolution"
+  ],
+  "WavespeedImageUpscaleNode": [
+   "model",
+   "image",
+   "target_resolution"
+  ],
+  "WebcamCapture": [
+   "image",
+   "width",
+   "height",
+   "capture_on_queue"
+  ],
+  "ZImageFunControlnet": [
+   "model",
+   "model_patch",
+   "vae",
+   "strength",
+   "image",
+   "inpaint_image",
+   "mask"
+  ],
+  "unCLIPCheckpointLoader": [
+   "ckpt_name"
+  ],
+  "unCLIPConditioning": [
+   "conditioning",
+   "clip_vision_output",
+   "strength",
+   "noise_augmentation"
+  ],
+  "wanBlockSwap": [
+   "model"
+  ]
+ }
+}

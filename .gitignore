@@ -1,0 +1,8 @@
+data/
+__pycache__/
+*.pyc
+.venv/
+# ClickHouse server droppings if one is started without a valid --path.
+access/
+preprocessed_configs/
+status

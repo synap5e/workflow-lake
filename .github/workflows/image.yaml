@@ -1,0 +1,77 @@
+# Verify, then publish the image. Shaped after synap5e/gcp-k8s's
+# .github/workflows/ingest.yaml: tests gate the build, and only a push to main
+# publishes.
+#
+# The image is PUBLIC under a personal namespace, deliberately. medina has no
+# ambient ghcr credentials, so a public personal-namespace image needs no pull
+# secret at all; org-private ghcr is what that cluster migrated away from.
+# Nothing here is secret — it is a public-data crawler.
+name: image
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+env:
+  IMAGE: ghcr.io/${{ github.repository_owner }}/workflow-lake
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - run: uv sync --extra dev
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+      # No network, no database: the whole suite runs against fixtures and a
+      # stub transport, so a red build means the code is wrong rather than a
+      # source being down.
+      - run: uv run pytest -q
+
+  image:
+    if: github.event_name != 'pull_request'
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      digest: ${{ steps.build.outputs.digest }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE }}
+          # The sha tag is what the cluster pins, alongside the digest.
+          tags: |
+            type=sha,format=long
+            type=raw,value=latest,enable={{is_default_branch}}
+      - id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      # Printed so the cluster PR can pin tag@digest without a registry query.
+      - name: Pin line for synap5e/gcp-k8s
+        run: |
+          echo "image: ${{ env.IMAGE }}:sha-${GITHUB_SHA}@${{ steps.build.outputs.digest }}" \
+            >> "$GITHUB_STEP_SUMMARY"

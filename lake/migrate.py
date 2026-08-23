@@ -27,6 +27,7 @@ from __future__ import annotations
 import hashlib
 import pathlib
 from dataclasses import dataclass
+from importlib.resources import files
 
 # Fixed 64-bit key for pg_advisory_lock. Derived from the name so it cannot
 # collide by accident with another application's lock on a shared instance.
@@ -51,10 +52,46 @@ class Migration:
         return hashlib.sha256(self.sql.encode()).hexdigest()[:16]
 
 
-def load(directory: str | pathlib.Path) -> list[Migration]:
-    """Every .sql file, in filename order. Numbering is the ordering contract."""
-    path = pathlib.Path(directory)
-    return [Migration(p.name, p.read_text()) for p in sorted(path.glob("*.sql"))]
+class NoMigrations(RuntimeError):
+    """No migration files were found where they were expected."""
+
+
+def default_directory():
+    """The migrations shipped inside the package.
+
+    They live in `lake/migrations/`, not at the repo root, because a console
+    script puts its own bin directory on `sys.path[0]` rather than the cwd — so
+    an installed `pipeline.cli` resolves to site-packages, and a repo-root
+    `migrations/` beside it simply does not exist. That resolved to an empty
+    directory in production and migrate reported success having applied nothing.
+    """
+    return files("lake").joinpath("migrations")
+
+
+def load(directory=None) -> list[Migration]:
+    """Every .sql file, in filename order. Numbering is the ordering contract.
+
+    Finding none is an error, never an empty success: an application that
+    defines tables and discovers no migrations to apply is not in a valid state,
+    and reporting success there is what masked the bootstrap race as working.
+    """
+    directory = default_directory() if directory is None else directory
+    if isinstance(directory, (str, pathlib.Path)):
+        directory = pathlib.Path(directory)
+        entries = sorted(directory.glob("*.sql"))
+    else:  # importlib Traversable
+        entries = sorted(
+            (e for e in directory.iterdir() if e.name.endswith(".sql")),
+            key=lambda e: e.name,
+        )
+    out = [Migration(e.name, e.read_text()) for e in entries]
+    if not out:
+        raise NoMigrations(
+            f"no *.sql migrations found in {directory}. The package was built "
+            f"without its migrations, or they are not where this expects them — "
+            f"either way the schema cannot be trusted, so this refuses to run."
+        )
+    return out
 
 
 def pending(conn, migrations: list[Migration]) -> list[Migration]:
@@ -82,26 +119,34 @@ def pending(conn, migrations: list[Migration]) -> list[Migration]:
     return out
 
 
-def run(frontier, directory: str | pathlib.Path, *, dry_run: bool = False) -> dict:
-    """Apply pending migrations under an advisory lock. Idempotent."""
+def run(frontier, directory=None, *, dry_run: bool = False) -> dict:
+    """Apply pending migrations under an advisory lock. Idempotent.
+
+    Discovery happens before anything touches the database, so a build missing
+    its migrations fails without creating a tracking table that would make the
+    next run look already-bootstrapped.
+    """
     conn = frontier.conn
     migrations = load(directory)
 
-    with conn.cursor() as cur:
-        cur.execute(BOOTSTRAP)
-    conn.commit()
-
-    if dry_run:
-        names = [m.filename for m in pending(conn, migrations)]
-        conn.rollback()
-        return {"pending": names, "applied": [], "dry_run": True}
-
     applied: list[str] = []
     with conn.cursor() as cur:
-        # Session-level, released explicitly below. Held across the whole batch
-        # so a second pod waits rather than interleaving with a half-applied one.
+        # Taken FIRST, before the bootstrap CREATE. `CREATE TABLE IF NOT EXISTS`
+        # is not atomic against a concurrent one — two pods racing on a virgin
+        # database both pass the existence check and one dies on
+        # pg_type_typname_nsp_index. The tracking table needs the same protection
+        # as everything it tracks, and on first boot it is the ONLY thing at risk.
         cur.execute("SELECT pg_advisory_lock(%s)", (LOCK_KEY,))
     try:
+        with conn.cursor() as cur:
+            cur.execute(BOOTSTRAP)
+        conn.commit()
+
+        if dry_run:
+            names = [m.filename for m in pending(conn, migrations)]
+            conn.rollback()
+            return {"pending": names, "applied": [], "dry_run": True}
+
         # Re-read inside the lock: another pod may have applied them while we
         # waited, which is the normal case when several jobs tick together.
         for migration in pending(conn, migrations):

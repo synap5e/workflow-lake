@@ -31,6 +31,7 @@ import pathlib
 import re
 from collections import Counter
 from dataclasses import dataclass, field
+from importlib.resources import files
 from typing import Any
 
 # Loader inputs whose binding time we care about: literal in the graph (the
@@ -97,19 +98,24 @@ class Reference:
     @classmethod
     def load(
         cls,
-        core_path: str | pathlib.Path = "reference/core_nodes.json",
+        core_path: str | pathlib.Path | None = None,
         map_path: str | pathlib.Path = (
             pathlib.Path.home() / "comfy" / "ComfyUI-Manager" / "extension-node-map.json"
         ),
         packs_path: str | pathlib.Path = "data/packs.jsonl",
     ) -> Reference:
-        core = pathlib.Path(core_path)
-        if not core.exists():
-            # The experiments repo generates it into data/; the image bakes it
-            # into reference/. Accept either so one library serves both.
-            alt = pathlib.Path("data/core_nodes.json")
-            core = alt if alt.exists() else core
-        core_doc = json.loads(core.read_text())
+        if core_path is None:
+            # Packaged, not cwd-relative: a console script does not put the cwd
+            # on sys.path, so a relative default silently resolves against
+            # whatever directory the process happened to start in.
+            core_doc = json.loads(files("lake").joinpath("reference/core_nodes.json").read_text())
+        else:
+            core = pathlib.Path(core_path)
+            if not core.exists():
+                # The experiments repo regenerates it into data/.
+                alt = pathlib.Path("data/core_nodes.json")
+                core = alt if alt.exists() else core
+            core_doc = json.loads(core.read_text())
         node_to_packs: dict[str, list[str]] = {}
         pack_titles: dict[str, str] = {}
         raw = json.loads(pathlib.Path(map_path).read_text())

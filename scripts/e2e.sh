@@ -50,6 +50,31 @@ curl -sf "http://127.0.0.1:18123/" \
   --data-binary "CREATE DATABASE IF NOT EXISTS workflow_lake" >/dev/null
 
 cd "$ROOT"
+# The race that broke production: five pods hitting a VIRGIN database at once,
+# where the tracking table itself is the contended object. The earlier version
+# of this check ran after the table already existed and proved nothing.
+echo "== migrate races from an EMPTY database (5 pods, cold start) =="
+race_pids=()
+for _ in 1 2 3 4 5; do
+  uv run --quiet lake migrate >"$WORK/migrate-$RANDOM.log" 2>&1 &
+  race_pids+=($!)
+done
+race_failed=0
+for pid in "${race_pids[@]}"; do wait "$pid" || race_failed=1; done
+if [[ $race_failed -ne 0 ]]; then
+  echo "  FAIL: a cold-start concurrent migrate errored:"; cat "$WORK"/migrate-*.log; exit 1
+fi
+# Exactly one should have applied them; the rest find nothing to do.
+echo "  5 cold-start migrations, no races"
+
+echo "== schema is actually there =="
+nix shell nixpkgs#postgresql --command psql -h "$PGHOST" -U postgres -d workflow_lake -tAc \
+  "SELECT count(*) FROM information_schema.tables WHERE table_schema='public'" \
+  | xargs -I{} sh -c 'echo "  {} tables"; [ {} -ge 6 ] || { echo "  FAIL: schema not applied"; exit 1; }'
+nix shell nixpkgs#postgresql --command psql -h "$PGHOST" -U postgres -d workflow_lake -tAc \
+  "SELECT count(*) FROM schema_migrations" \
+  | xargs -I{} sh -c 'echo "  {} migrations recorded"; [ {} -ge 2 ] || { echo "  FAIL: none recorded"; exit 1; }'
+
 echo "== migrate =="            && uv run --quiet lake migrate
 echo "== migrate is idempotent ==" && uv run --quiet lake migrate
 echo "== discover-tip =="       && uv run --quiet lake discover-tip --max-pages 2
@@ -71,18 +96,7 @@ echo "== re-ingest is idempotent (ReplacingMergeTree) =="
 uv run --quiet lake ingest >/dev/null
 ch_q "SELECT count(), uniqExact(workflow_id) FROM derived_workflows FINAL FORMAT TSV"
 
-echo "== concurrent migrate does not race (5 pods ticking together) =="
-# Wait on THESE pids only. A bare `wait` also waits for the ClickHouse server
-# started with `&` above, which never exits — the run would hang here forever.
-migrate_pids=()
-for _ in 1 2 3 4 5; do
-  uv run --quiet lake migrate >/dev/null &
-  migrate_pids+=($!)
-done
-for pid in "${migrate_pids[@]}"; do
-  wait "$pid" || { echo "  FAIL: a concurrent migrate errored"; exit 1; }
-done
-echo "  5 concurrent migrations, all clean"
+echo "== migrate --check reports nothing pending =="
 uv run --quiet lake migrate --check
 
 echo "== the latch stops the next run =="

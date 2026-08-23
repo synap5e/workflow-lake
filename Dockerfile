@@ -7,21 +7,20 @@ FROM python:3.12-slim
 
 WORKDIR /app
 COPY pyproject.toml README.md ./
+# migrations/ and reference/ live INSIDE lake/ so they install with the package.
+# Copying them to /app would put them where an installed console script cannot
+# see them, which is precisely the defect this layout fixes.
 COPY lake ./lake
 COPY pipeline ./pipeline
-COPY migrations ./migrations
 COPY schema.sql ./schema.sql
 # gcs: the dedicated-SA path medina grants us. s3: the HMAC fallback if an org
 # policy forbids SA key creation. Both installed so the credential decision is
 # a config change rather than a rebuild.
 RUN pip install --no-cache-dir '.[gcs,s3]'
 
-# Reference tables the derivation needs, baked at build time. Kept in
-# reference/ rather than data/ precisely because data/ is gitignored — a CI
-# checkout has no data/, so a COPY from there builds locally and fails in CI.
-COPY reference ./reference
-
 RUN useradd --uid 10001 --create-home lake
 USER 10001
+# Fails the build if the wheel did not carry its migrations or reference data.
+RUN lake selftest
 ENTRYPOINT ["lake"]
 CMD ["status"]

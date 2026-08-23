@@ -49,7 +49,9 @@ class FakeCursor:
         return False
 
     def execute(self, sql, params=None):
-        self.state["executed"].append((sql.strip()[:40], params))
+        # 120, not 40: the bootstrap statement's table name sits past 40 chars,
+        # which silently defeated the ordering assertion below.
+        self.state["executed"].append((sql.strip()[:120], params))
         if "SELECT filename, checksum" in sql:
             self._rows = [{"filename": f, "checksum": c} for f, c in self.state["applied"].items()]
         elif "INSERT INTO schema_migrations" in sql:
@@ -104,6 +106,65 @@ def test_takes_an_advisory_lock(tmp_path) -> None:
     sql = [s for s, _ in f.state["executed"]]
     assert any("pg_advisory_lock" in s for s in sql)
     assert any("pg_advisory_unlock" in s for s in sql)
+
+
+def test_lock_is_taken_before_the_bootstrap_create(tmp_path) -> None:
+    """The defect that broke the first deploy.
+
+    On a virgin database the tracking table is the ONLY thing at risk, and it was
+    created outside the lock — two pods both passed `IF NOT EXISTS` and one died
+    on pg_type_typname_nsp_index. The tracking table needs the same protection as
+    everything it tracks.
+    """
+    d = write(tmp_path, **{"001.sql": "CREATE TABLE a()"})
+    f = FakeFrontier()
+    migrate.run(f, d)
+    sql = [s for s, _ in f.state["executed"]]
+    lock = next(i for i, q in enumerate(sql) if "pg_advisory_lock" in q)
+    bootstrap = next(i for i, q in enumerate(sql) if "schema_migrations" in q and "CREATE" in q)
+    assert lock < bootstrap, "bootstrap CREATE must happen inside the lock"
+
+
+def test_zero_migrations_is_an_error_not_an_empty_success(tmp_path) -> None:
+    """The second defect: the image shipped without its migrations, migrate found
+    none, exited 0, and the main container then failed on the missing tables.
+    An app that defines tables and finds nothing to apply is never valid."""
+    empty = tmp_path / "migrations"
+    empty.mkdir()
+    with pytest.raises(migrate.NoMigrations, match="no \\*.sql migrations found"):
+        migrate.load(empty)
+    with pytest.raises(migrate.NoMigrations):
+        migrate.run(FakeFrontier(), empty)
+
+
+def test_missing_migrations_touches_nothing(tmp_path) -> None:
+    """Discovery must fail before the bootstrap, or a broken build leaves behind
+    a tracking table that makes the next run look already-bootstrapped."""
+    empty = tmp_path / "migrations"
+    empty.mkdir()
+    f = FakeFrontier()
+    with pytest.raises(migrate.NoMigrations):
+        migrate.run(f, empty)
+    assert f.state["executed"] == [], "no statement should have reached the database"
+
+
+def test_packaged_migrations_are_discoverable() -> None:
+    """The installed package must carry its own migrations. `migrate --help`
+    proved the flag existed while the files did not."""
+    names = [m.filename for m in migrate.load()]
+    assert names == sorted(names) and names, names
+    assert all(n.endswith(".sql") for n in names)
+
+
+def test_adopts_a_pre_existing_empty_tracking_table(tmp_path) -> None:
+    """The broken deploy left an empty schema_migrations behind. It must be
+    adopted and filled, not treated as 'already migrated'."""
+    d = write(tmp_path, **{"001.sql": "CREATE TABLE a()", "002.sql": "CREATE TABLE b()"})
+    f = FakeFrontier()
+    # Simulate the wreckage: table exists, no rows recorded.
+    f.state["applied"] = {}
+    result = migrate.run(f, d)
+    assert result["applied"] == ["001.sql", "002.sql"]
 
 
 def test_lock_is_released_even_when_a_migration_fails(tmp_path) -> None:

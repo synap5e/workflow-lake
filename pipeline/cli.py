@@ -7,6 +7,7 @@
     lake ingest            [--since KEY]
     lake gc
     lake unlatch <host>
+    lake selftest          # packaged data present? no DB, no network
     lake status
 
 Every subcommand is a bounded, idempotent batch that exits. That is what makes a
@@ -19,7 +20,6 @@ from __future__ import annotations
 import argparse
 import json
 import os
-import pathlib
 import sys
 
 from lake import migrate
@@ -27,7 +27,10 @@ from lake.config import Config
 from lake.db import Frontier
 from lake.latch import Latched
 
-MIGRATIONS = pathlib.Path(__file__).resolve().parent.parent / "migrations"
+# Resolved from the package, not from this file's parent: an installed console
+# script puts its bin directory on sys.path, so `parent.parent` lands in
+# site-packages and a repo-root `migrations/` is invisible.
+MIGRATIONS = None  # `lake.migrate` resolves its own packaged default
 
 
 def _frontier(cfg: Config) -> Frontier:
@@ -43,7 +46,7 @@ def cmd_migrate(cfg: Config, args: argparse.Namespace) -> dict:
     """
     frontier = _frontier(cfg)
     try:
-        return migrate.run(frontier, MIGRATIONS, dry_run=args.check)
+        return migrate.run(frontier, dry_run=args.check)
     finally:
         frontier.close()
 
@@ -138,6 +141,29 @@ def cmd_unlatch(cfg: Config, args: argparse.Namespace) -> dict:
         frontier.close()
 
 
+def cmd_selftest(cfg: Config, args: argparse.Namespace) -> dict:
+    """Verify the package carries the data it needs. No database, no network.
+
+    Exists because `migrate --help` proved the *flag* existed while the
+    migrations themselves were absent from the image. A build can be perfectly
+    importable and still be missing everything that matters, so CI runs this
+    against the built image.
+    """
+    from lake.derive import Reference
+    from lake.migrate import load
+
+    migrations = [m.filename for m in load()]
+    ref = Reference.load()
+    if not ref.core:
+        raise RuntimeError("core node reference is empty")
+    return {
+        "migrations": migrations,
+        "core_class_types": len(ref.core),
+        "hidden_prompt_class_types": len(ref.hidden_prompt),
+        "ok": True,
+    }
+
+
 def cmd_status(cfg: Config, args: argparse.Namespace) -> dict:
     frontier = _frontier(cfg)
     try:
@@ -208,6 +234,10 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("host")
     p.add_argument("--by", default=os.environ.get("USER", "unknown"))
     p.set_defaults(fn=cmd_unlatch)
+
+    sub.add_parser(
+        "selftest", help="verify packaged migrations and reference data are present"
+    ).set_defaults(fn=cmd_selftest)
 
     sub.add_parser("status").set_defaults(fn=cmd_status)
     return ap

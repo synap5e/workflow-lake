@@ -25,7 +25,7 @@ import sys
 from lake import migrate
 from lake.config import Config
 from lake.db import Frontier
-from lake.latch import Latched
+from lake.latch import BackingOff, Latched
 
 # Resolved from the package, not from this file's parent: an installed console
 # script puts its bin directory on sys.path, so `parent.parent` lands in
@@ -282,6 +282,13 @@ def main(argv: list[str] | None = None) -> int:
         # state from "the job broke", and the alert rules distinguish them.
         print(json.dumps({"latched": str(exc)}), file=sys.stderr)
         return 2
+    except BackingOff as exc:
+        # Exit 0, and the distinction from Latched above is the whole point.
+        # Backing off is the crawler behaving correctly during a source outage,
+        # so a Failed Job here would be noise a human has to triage — the same
+        # category error as alerting on a healthy sawtooth. It clears itself.
+        print(json.dumps({"backing_off": str(exc)}))
+        return 0
     except Exception as exc:
         print(json.dumps({"error": f"{type(exc).__name__}: {exc}"}), file=sys.stderr)
         return 1

@@ -12,6 +12,7 @@ from __future__ import annotations
 import os
 import random
 import socket
+import sys
 import threading
 import time
 from collections import defaultdict
@@ -76,6 +77,10 @@ class LatchSink(Protocol):
     at the next tick forever. `pipeline` supplies a Postgres-backed
     implementation; tests supply a fake; a bare probe supplies None.
     """
+
+    def transient(self, host: str, status: int) -> int:
+        """Record a transient 5xx. Return seconds now backed off, 0 if not yet."""
+        ...
 
     def refused(self, host: str, status: int) -> bool:
         """Record a refusal. Return True if the host is now latched."""
@@ -177,6 +182,18 @@ class PoliteClient:
                 self._latch.succeeded(host)
             if resp.status_code == 429 or resp.status_code >= 500:
                 if attempt == self._max_retries:
+                    # Counted only after the in-request retries are exhausted, so
+                    # a single blip that the second attempt rides out never
+                    # contributes. What reaches here is a host that stayed down
+                    # for the whole request, which is what backoff is for.
+                    if self._latch is not None and resp.status_code >= 500:
+                        seconds = self._latch.transient(host, resp.status_code)
+                        if seconds:
+                            print(
+                                f"  {host} backing off {seconds}s after repeated "
+                                f"HTTP {resp.status_code}",
+                                file=sys.stderr,
+                            )
                     return resp
                 retry_after = resp.headers.get("retry-after")
                 sleep_for = float(retry_after) if (retry_after or "").isdigit() else delay

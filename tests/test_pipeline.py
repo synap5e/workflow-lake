@@ -205,6 +205,13 @@ class LeaseFrontier:
     def latched(self, host):
         return None
 
+    # gate() checks transient backoff as well as the latch.
+    def backing_off(self, host):
+        return None
+
+    def clear_transient(self, host):
+        pass
+
     def record_refusal(self, host, status, threshold, detail=""):
         return False
 
@@ -295,6 +302,13 @@ class TipFrontier:
 
     def latched(self, host):
         return None
+
+    # gate() checks transient backoff as well as the latch.
+    def backing_off(self, host):
+        return None
+
+    def clear_transient(self, host):
+        pass
 
     def record_refusal(self, host, status, threshold, detail=""):
         return False

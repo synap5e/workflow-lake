@@ -353,6 +353,63 @@ class Frontier:
             )
             return cur.fetchall()
 
+    def record_transient(self, host: str, status: int, threshold: int, base_seconds: int) -> int:
+        """Count a transient 5xx and, past `threshold`, back the host off.
+
+        Returns the seconds this host is now backed off for, 0 if not yet.
+        Doubling from `base_seconds`, capped so a long outage cannot push the
+        next attempt beyond a day and silently retire the source.
+
+        Unlike `record_refusal` this is NOT sticky: `record_success` clears it.
+        A 503 is a source under load, not a source refusing us, and the two
+        deserve different costs to recover from.
+        """
+        with self.tx() as cur:
+            cur.execute(
+                """
+                INSERT INTO crawl_host_backoff (host, consecutive_transient, last_status,
+                                                updated_at)
+                VALUES (%s, 1, %s, now())
+                ON CONFLICT (host) DO UPDATE
+                   SET consecutive_transient = crawl_host_backoff.consecutive_transient + 1,
+                       last_status = EXCLUDED.last_status,
+                       updated_at = now()
+             RETURNING consecutive_transient
+                """,
+                (host, status),
+            )
+            consecutive = cur.fetchone()["consecutive_transient"]
+            if consecutive < threshold:
+                return 0
+            seconds = min(base_seconds * (2 ** (consecutive - threshold)), 86400)
+            cur.execute(
+                "UPDATE crawl_host_backoff SET backoff_until = now() + make_interval(secs => %s) "
+                "WHERE host = %s",
+                (seconds, host),
+            )
+            return seconds
+
+    def backing_off(self, host: str) -> dict | None:
+        """The active backoff for a host, or None. Expired rows read as None."""
+        with self.tx() as cur:
+            cur.execute(
+                "SELECT host, backoff_until, consecutive_transient, last_status, "
+                "       EXTRACT(epoch FROM backoff_until - now())::int AS seconds_left "
+                "  FROM crawl_host_backoff "
+                " WHERE host = %s AND backoff_until IS NOT NULL AND backoff_until > now()",
+                (host,),
+            )
+            return cur.fetchone()
+
+    def clear_transient(self, host: str) -> None:
+        """A success means the outage is over. Self-clearing is the whole point."""
+        with self.tx() as cur:
+            cur.execute(
+                "UPDATE crawl_host_backoff SET consecutive_transient = 0, backoff_until = NULL, "
+                "updated_at = now() WHERE host = %s AND consecutive_transient > 0",
+                (host,),
+            )
+
     def record_refusal(self, host: str, status: int, threshold: int, detail: str = "") -> bool:
         """Count a 401/403/429 and latch the host once `threshold` land in a row.
 

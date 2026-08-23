@@ -41,6 +41,13 @@ class FakeFrontier:
     def latched(self, host):
         return self.latches.get(host)
 
+    # gate() checks transient backoff as well as the latch.
+    def backing_off(self, host):
+        return None
+
+    def clear_transient(self, host):
+        pass
+
 
 class Sink:
     def __init__(self, frontier: FakeFrontier) -> None:
@@ -116,3 +123,103 @@ def test_latch_is_per_host() -> None:
     gate(f, ["other.test"])  # unaffected
     with pytest.raises(Latched):
         gate(f, ["blocked.test"])
+
+
+class BackoffFrontier:
+    """Frontier surface for transient backoff, with the real self-clearing rule."""
+
+    def __init__(self) -> None:
+        self.consecutive = 0
+        self.until_seconds = 0
+        self.cleared = 0
+
+    def record_transient(self, host, status, threshold, base_seconds):
+        self.consecutive += 1
+        if self.consecutive < threshold:
+            return 0
+        self.until_seconds = min(base_seconds * (2 ** (self.consecutive - threshold)), 86400)
+        return self.until_seconds
+
+    def record_success(self, host):
+        pass
+
+    def clear_transient(self, host):
+        self.consecutive = 0
+        self.until_seconds = 0
+        self.cleared += 1
+
+    def latched(self, host):
+        return None
+
+    def backing_off(self, host):
+        if not self.until_seconds:
+            return None
+        return {
+            "consecutive_transient": self.consecutive,
+            "last_status": 503,
+            "seconds_left": self.until_seconds,
+        }
+
+
+def test_transient_5xx_backs_off_only_after_a_streak_and_then_doubles() -> None:
+    """Civitai returned 503 for four hours and we knocked every 15 minutes.
+
+    One 503 must not back anything off — sources blip. A streak must, and the
+    delay has to grow, or a long outage is just a slower version of knocking.
+    """
+    from lake.latch import TRANSIENT_BASE_SECONDS, PostgresLatch
+
+    f = BackoffFrontier()
+    latch = PostgresLatch(f)
+
+    assert latch.transient("civitai.com", 503) == 0, "one blip is not an outage"
+    assert latch.transient("civitai.com", 503) == 0
+    assert latch.transient("civitai.com", 503) == TRANSIENT_BASE_SECONDS
+    assert latch.transient("civitai.com", 503) == TRANSIENT_BASE_SECONDS * 2
+    assert latch.transient("civitai.com", 503) == TRANSIENT_BASE_SECONDS * 4
+
+
+def test_backoff_clears_itself_on_the_first_success() -> None:
+    """The property that makes this NOT the latch.
+
+    A latch is an incident a human clears. Transient overload resolves on its
+    own — as this one did, after four hours — so requiring a human would have
+    stopped the crawler until someone noticed a problem that had already fixed
+    itself.
+    """
+    from lake.latch import PostgresLatch
+
+    f = BackoffFrontier()
+    latch = PostgresLatch(f)
+    for _ in range(4):
+        latch.transient("civitai.com", 503)
+    assert f.backing_off("civitai.com") is not None
+
+    latch.succeeded("civitai.com")
+
+    assert f.backing_off("civitai.com") is None
+    assert f.cleared == 1
+
+
+def test_backing_off_exits_zero_while_latched_exits_two() -> None:
+    """Different operational states must not look the same to the kubelet.
+
+    Exit 2 means a human is needed. A backoff tick is the crawler working, so
+    it exits 0 — a Failed Job for an expected quiet period is noise someone has
+    to triage, which is how the real 503 outage stayed invisible in a wall of
+    red for four hours.
+    """
+    from lake.latch import BackingOff, Latched, gate
+
+    f = BackoffFrontier()
+    for _ in range(4):
+        f.record_transient("civitai.com", 503, 3, 900)
+
+    try:
+        gate(f, ["civitai.com"])
+    except BackingOff as exc:
+        assert "clears itself" in str(exc).lower()
+    else:
+        raise AssertionError("gate must refuse to start while backing off")
+
+    assert not issubclass(BackingOff, Latched), "the exit codes depend on these being distinct"

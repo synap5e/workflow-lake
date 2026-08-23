@@ -164,6 +164,25 @@ echo "$again" | grep -q '"manifests": 0' \
   && echo "  second ingest consumed 0 manifests — correct" \
   || { echo "  FAIL: re-read manifests it had already consumed:"; echo "$again"; exit 1; }
 
+echo "== transient 5xx backs off, then clears itself =="
+uv run --quiet python -c "
+from lake.config import Config
+from lake.db import Frontier
+from lake.latch import PostgresLatch
+f = Frontier(Config.from_env().database_url)
+latch = PostgresLatch(f)
+first = [latch.transient('civitai.com', 503) for _ in range(3)]
+assert first[:2] == [0, 0], f'a blip must not back off: {first}'
+assert first[2] > 0, f'a streak must: {first}'
+assert f.backing_off('civitai.com') is not None, 'gate must see the backoff'
+latch.succeeded('civitai.com')
+assert f.backing_off('civitai.com') is None, 'a success must clear it with no human'
+print('  3 x 503 backed off, one success cleared it')
+f.close()"
+set +e; uv run --quiet lake fetch --batch 1 >/dev/null 2>&1; code=$?; set -e
+[[ $code -eq 0 ]] && echo "  a cleared backoff does not block the next run" \
+  || { echo "  FAIL: exit $code after the backoff cleared"; exit 1; }
+
 echo "== migrate --check reports nothing pending =="
 uv run --quiet lake migrate --check
 

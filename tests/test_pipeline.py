@@ -403,3 +403,78 @@ def test_tip_stops_once_pages_stop_adding_anything(monkeypatch) -> None:
     assert out["queued"] == 1, "only id 9 was new"
     assert "99" not in frontier.known
     assert len(seen_pages) == 4, "stopped after two consecutive barren pages"
+
+
+@pytest.mark.parametrize(
+    "url,expected",
+    [
+        ("https://image.civitai.com/x/y/original=true/a.png", True),
+        ("https://image.civitai.com/x/y/original=true/a.webp", True),
+        ("https://image.civitai.com/x/y/original=true/a.mp4", True),
+        ("https://image.civitai.com/x/y/original=true/A.PNG", True),
+        # Query strings must not defeat the extension check.
+        ("https://image.civitai.com/x/y/a.jpeg?width=450", False),
+    ],
+)
+def test_only_barren_containers_are_skipped(url, expected) -> None:
+    from lake import civitai
+
+    assert civitai.bytes_worth_fetching(url, sample_rate=0.0) is expected
+
+
+def test_a_stable_sample_of_barren_containers_is_still_fetched() -> None:
+    """`never` is a claim with an expiry date.
+
+    JPEG carried a workflow 0 times in 551 artifacts across two independent
+    samples, which justifies skipping it — but not forever and not silently. A
+    fixed slice keeps being fetched so a change at the source shows up as data
+    rather than as an assumption nobody revisits. Keyed on the URL, so a
+    re-run makes the same decision instead of drifting per attempt.
+    """
+    from lake import civitai
+
+    urls = [f"https://image.civitai.com/x/{i}/original=true/{i}.jpeg" for i in range(4000)]
+    sampled = [u for u in urls if civitai.bytes_worth_fetching(u)]
+
+    assert 0.01 < len(sampled) / len(urls) < 0.035, "roughly 2%"
+    assert all(civitai.bytes_worth_fetching(u) for u in sampled), "decision must be stable"
+
+
+def test_barren_artifacts_are_finished_not_left_leased(monkeypatch, tmp_path) -> None:
+    """A skip is still a decision: the row must leave the queue.
+
+    Skipping by `continue` without finishing would have left every JPEG leased
+    until its lease expired, then re-leased it forever — busier than the
+    behaviour it replaced.
+    """
+    from lake import civitai
+    from lake.config import Config
+    from pipeline import fetch
+
+    f = LeaseFrontier(3)
+    monkeypatch.setattr(
+        civitai, "image_get", lambda client, aid: {"url": f"u{aid}", "name": "a.jpeg"}
+    )
+    monkeypatch.setattr(
+        civitai,
+        "image_url",
+        lambda rec: f"https://image.civitai.com/x/{rec['url']}/original=true/a.jpeg",
+    )
+    monkeypatch.setattr(civitai, "bytes_worth_fetching", lambda url, **kw: False)
+    cfg = Config(
+        database_url="",
+        blob_root=str(tmp_path),
+        user_agent="t",
+        civitai_api_key=None,
+        api_rps=1000,
+        cdn_rps=1000,
+        keep_prefix_days=90,
+        fetch_deadline=600.0,
+    )
+
+    stats = fetch.run(cfg, f, batch=3)
+
+    assert stats["barren_skipped"] == 3
+    assert stats["processed"] == 3
+    assert f.released == [], "a skipped row is finished, not handed back"
+    assert set(f.finished.values()) == {"skipped"}

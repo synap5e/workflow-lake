@@ -94,6 +94,7 @@ def run(
     deadline = deadline_seconds if deadline_seconds is not None else cfg.fetch_deadline
     workflows = 0
     failed = 0
+    barren = 0
     # Where the wall clock actually goes. The first deployment ran at ~16s an
     # artifact against 1.7s measured outside the cluster, and nothing in the
     # logs said which call was slow.
@@ -143,6 +144,15 @@ def run(
                     continue
                 url = civitai.image_url(record)
                 side = civitai.sidecar(record)
+
+                # The container is only knowable here: the listing carries a
+                # null `name`, so a discovery-time guess would call everything
+                # PNG. That is also why this cannot save the image.get above.
+                if not civitai.bytes_worth_fetching(url):
+                    frontier.finish(SOURCE, artifact_id, "skipped", "barren container")
+                    barren += 1
+                    processed.add(artifact_id)
+                    continue
 
                 _t = time.time()
                 result = fetch_bytes(cdn, url, keep_prefix=keep_prefix)
@@ -272,6 +282,7 @@ def run(
         "seconds_per_artifact": {k: round(v / max(len(processed), 1), 2) for k, v in spent.items()},
         "workflows": workflows,
         "failed": failed,
+        "barren_skipped": barren,
         "records": manifest.count,
         "blobs_written": blobs.written,
         "blobs_deduped": blobs.deduped,

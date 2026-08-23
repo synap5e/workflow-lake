@@ -16,6 +16,7 @@ to civitai.com.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import pathlib
@@ -137,6 +138,37 @@ def generation_data(client: PoliteClient, image_id: int) -> dict | None:
         if _is_auth_failure(exc):
             raise AuthRequired("image.getGenerationData refused (HTTP 401/403)") from exc
         return None
+
+
+# Containers whose bytes have never carried a workflow, and the fraction still
+# sampled anyway. See `bytes_worth_fetching`.
+BARREN_EXTENSIONS = (".jpg", ".jpeg")
+BARREN_SAMPLE_RATE = 0.02
+
+
+def bytes_worth_fetching(url: str, *, sample_rate: float = BARREN_SAMPLE_RATE) -> bool:
+    """Whether this artifact's bytes are worth spending a request on.
+
+    JPEG has never carried a workflow here: 0 of 224 in the experiments, then 0
+    of 327 in the first production hours — and not merely 0 from the bytes, 0
+    from the API channel too, so there is nothing the other channel rescues.
+    ComfyUI does not write JPEG with an embedded graph, and a JPEG on Civitai is
+    a re-upload of an image generated somewhere else.
+
+    Skipping them drops 56% of CDN requests and 47% of bytes for no loss. The
+    wall-clock gain is only ~14% because `image.get` at 1.5 rps dominates a run
+    either way — the reason to do it is that it halves what we take from a
+    third party's CDN, not that it makes us faster.
+
+    A fixed ~2% is still fetched, keyed on the URL so the choice is stable
+    across re-runs rather than drifting per attempt. "Never" is a claim with an
+    expiry date: if ComfyUI starts writing JPEG metadata, the canary notices
+    instead of this assumption quietly outliving its evidence.
+    """
+    path = urllib.parse.urlparse(url).path.lower()
+    if not path.endswith(BARREN_EXTENSIONS):
+        return True
+    return hashlib.sha256(url.encode()).digest()[0] < 256 * sample_rate
 
 
 def image_url(item: dict) -> str | None:

@@ -148,3 +148,28 @@ def test_manifest_round_trips(tmp_path) -> None:
 def test_empty_manifest_writes_nothing(tmp_path) -> None:
     store = LocalStore(tmp_path)
     assert ManifestWriter(store, "civitai", "run-2").commit() is None
+
+
+def test_auth_failure_is_not_mistaken_for_a_missing_artifact() -> None:
+    """A 401 marked as `skipped: gone` would march the entire queue to skipped
+    and report a clean run — the same exit-0-while-doing-nothing shape that has
+    already bitten this project twice."""
+    from lake import civitai
+
+    served = Served(b"")
+    client = client_for(served)
+    client.client = httpx.Client(
+        transport=httpx.MockTransport(lambda r: httpx.Response(401, json={"error": "no"}))
+    )
+    with pytest.raises(civitai.AuthRequired):
+        civitai.image_get(client, 123)
+
+
+def test_a_genuine_404_still_returns_none() -> None:
+    from lake import civitai
+
+    client = PoliteClient(rps=1000, max_retries=0)
+    client.client = httpx.Client(
+        transport=httpx.MockTransport(lambda r: httpx.Response(404, json={"error": "gone"}))
+    )
+    assert civitai.image_get(client, 123) is None

@@ -24,7 +24,7 @@ from collections.abc import Iterator
 from typing import Any
 
 from .devalue import trpc_result
-from .polite import PoliteClient
+from .polite import HostBlocked, PoliteClient
 
 REST = "https://civitai.com/api/v1"
 TRPC = "https://civitai.com/api/trpc"
@@ -131,7 +131,11 @@ def generation_data(client: PoliteClient, image_id: int) -> dict | None:
     """Civitai's own record of how an image was made (its 'API-only' channel)."""
     try:
         return trpc(client, "image.getGenerationData", {"json": {"id": image_id}})
-    except Exception:
+    except HostBlocked:
+        raise
+    except Exception as exc:
+        if _is_auth_failure(exc):
+            raise AuthRequired("image.getGenerationData refused (HTTP 401/403)") from exc
         return None
 
 
@@ -160,11 +164,34 @@ def image_url(item: dict) -> str | None:
 TIP_PAGE_CAP = 40  # stay well inside the ~44-page cursor cap
 
 
+class AuthRequired(RuntimeError):
+    """The source refused us for lack of (or with a bad) credential.
+
+    Distinct from "this artifact is gone", and it must stay distinct: swallowing
+    a 401 as a 404 would march the whole queue to `skipped: gone` and report a
+    clean run, which is the same exit-0-while-doing-nothing shape that has
+    already bitten this project twice.
+    """
+
+
+def _is_auth_failure(exc: Exception) -> bool:
+    status = getattr(getattr(exc, "response", None), "status_code", None)
+    return status in (401, 403)
+
+
 def image_get(client: PoliteClient, image_id: int | str) -> dict | None:
-    """Single image by id. Returns None when the id is gone (404)."""
+    """Single image by id. Returns None only when the id is genuinely gone."""
     try:
         data = trpc(client, "image.get", {"json": {"id": int(image_id)}})
-    except Exception:
+    except HostBlocked:
+        # The latch fired. It must reach the job, not be mistaken for a 404.
+        raise
+    except Exception as exc:
+        if _is_auth_failure(exc):
+            raise AuthRequired(
+                "image.get refused (HTTP 401/403). Civitai's tRPC routes require "
+                "a token; set CIVITAI_API_KEY_FILE."
+            ) from exc
         return None
     return data if isinstance(data, dict) and data.get("id") else None
 

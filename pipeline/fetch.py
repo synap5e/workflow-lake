@@ -20,7 +20,7 @@ from lake.capture import capture_record, fetch_bytes, should_try_api
 from lake.config import Config
 from lake.db import Frontier
 from lake.latch import PostgresLatch, gate
-from lake.polite import PoliteClient
+from lake.polite import HostBlocked, PoliteClient
 from lake.storage import BlobWriter, ManifestWriter, open_store
 
 SOURCE = "civitai"
@@ -168,6 +168,12 @@ def run(
                         )
                     )
                 frontier.finish(SOURCE, artifact_id, "done")
+            except (civitai.AuthRequired, HostBlocked):
+                # Not this artifact's problem — every remaining one will fail the
+                # same way. Return the lease and stop rather than burning the
+                # queue into `failed` one row at a time.
+                frontier.finish(SOURCE, artifact_id, "pending")
+                raise
             except Exception as exc:
                 failed += 1
                 frontier.finish(SOURCE, artifact_id, "failed", f"{type(exc).__name__}: {exc}")

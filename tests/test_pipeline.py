@@ -581,7 +581,7 @@ def test_ingest_resumes_from_its_watermark_instead_of_the_whole_bucket(monkeypat
     monkeypatch.setattr(ingest.Reference, "load", staticmethod(lambda: None))
     monkeypatch.setattr(ingest, "read_manifest", lambda store, key: seen.append(key) or [])
     monkeypatch.setattr(
-        ingest, "transform", lambda recs, store, ref: dict.fromkeys(ingest.TABLES, [])
+        ingest, "transform", lambda recs, store, ref, **kw: dict.fromkeys(ingest.TABLES, [])
     )
     cfg = Config(
         database_url="",
@@ -607,3 +607,79 @@ def test_ingest_resumes_from_its_watermark_instead_of_the_whole_bucket(monkeypat
     assert out["manifests"] == 0
     assert seen == [], "already-consumed manifests must not be re-read"
     assert f.runs == ["ingest", "ingest"], "ingest must appear in crawl_run like every other job"
+
+
+def test_a_link_type_that_is_a_list_does_not_crash_derive() -> None:
+    """The graph that stopped ingest for four hours.
+
+    Litegraph links are [id, from, from_slot, to, to_slot, TYPE] and TYPE is
+    normally a string — but it is authored data, and real workflows carry a
+    union list there. `link[5] in MODEL_EDGE_TYPES` against a set then raises
+    TypeError: unhashable type: 'list'.
+    """
+    from lake.derive import Reference, derive
+
+    ref = Reference.load()
+    graph = {
+        "nodes": [{"id": 1, "type": "CheckpointLoaderSimple", "widgets_values": ["a.safetensors"]}],
+        "links": [
+            [1, 1, 0, 2, 0, ["MODEL", "CLIP"]],  # union type — used to raise
+            [2, 1, 1, 3, 0, "MODEL"],  # ordinary string
+            [3, 1, 2, 4, 0, ["CONDITIONING"]],  # union with no model member
+            [4, 1, 3, 5, 0, None],  # missing type
+        ],
+    }
+
+    d = derive(graph, ref)
+
+    assert d.format == "save"
+    assert d.model_edges == 2, "the union counts once, the plain string counts once"
+
+
+def test_one_bad_payload_does_not_abort_the_whole_ingest(monkeypatch, tmp_path) -> None:
+    """Why the crash cost four hours instead of one record.
+
+    transform raised, so the run aborted, so every manifest queued behind the
+    bad one went unread too. The bucket keeps the bytes, so skipping a record is
+    recoverable by fixing the parser and re-ingesting; aborting the run is not.
+    """
+    from lake.derive import Reference
+    from pipeline import ingest
+
+    ref = Reference.load()
+    calls = {"n": 0}
+
+    def exploding_derive(obj, r):
+        calls["n"] += 1
+        if calls["n"] == 2:
+            raise TypeError("unhashable type: 'list'")
+        from lake.derive import derive as real
+
+        return real(obj, r)
+
+    monkeypatch.setattr(ingest, "derive", exploding_derive)
+    monkeypatch.setattr(ingest, "blob_json", lambda store, sha, kind: {"nodes": [], "links": []})
+
+    recs = [
+        {
+            "source_artifact_id": str(i),
+            "payload_kind": "workflow",
+            "payload_sha256": "ab" * 32,
+            "capture_id": f"c{i}",
+            "crawled_at": "2026-08-23T00:00:00",
+            "channel": "bytes_head",
+            "source": "civitai",
+            "windows": [],
+            "stats": {},
+            "tags": [],
+        }
+        for i in range(3)
+    ]
+    failures: list[dict] = []
+
+    out = ingest.transform(recs, store=None, ref=ref, failures=failures)
+
+    assert len(out["raw_artifacts"]) == 3, "every record still produces a raw row"
+    assert len(failures) == 1
+    assert failures[0]["artifact_id"] == "1"
+    assert "unhashable" in failures[0]["error"]

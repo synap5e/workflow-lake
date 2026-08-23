@@ -229,8 +229,21 @@ def iso(value: Any) -> str | None:
     return text[:19] if len(text) >= 19 else None
 
 
-def transform(records: list[dict], store: Store, ref: Reference) -> dict[str, list[str]]:
-    """Manifest records -> one JSONEachRow batch per table."""
+def transform(
+    records: list[dict], store: Store, ref: Reference, *, failures: list[dict] | None = None
+) -> dict[str, list[str]]:
+    """Manifest records -> one JSONEachRow batch per table.
+
+    A record that cannot be derived is skipped and recorded, never raised. The
+    payloads are third-party authored data with no schema anyone enforces, so
+    "some artifact somewhere is shaped wrong" is a certainty rather than a risk.
+    One list where a string was expected took down every ingest tick for four
+    hours, and because the whole run aborted, the manifests behind the bad one
+    were never read either — a single malformed graph stopped the pipeline.
+
+    The bucket keeps the bytes, so a skipped record is recoverable by fixing the
+    parser and re-ingesting. Aborting the run is what is not recoverable.
+    """
     out: dict[str, list[str]] = {t: [] for t in TABLES}
     seen: set[str] = set()
 
@@ -241,8 +254,24 @@ def transform(records: list[dict], store: Store, ref: Reference) -> dict[str, li
         if sha and rec.get("payload_kind") in ("workflow", "prompt"):
             obj = blob_json(store, sha, rec["payload_kind"])
             if obj is not None:
-                d = derive(obj, ref)
-                if d.format != "unknown":
+                try:
+                    d = derive(obj, ref)
+                except Exception as exc:
+                    # Only the derivation is abandoned. The capture still
+                    # happened and the raw row still gets written, with an empty
+                    # workflow_id — dropping it too would lose the evidence that
+                    # this artifact was ever fetched, and the raw layer is
+                    # supposed to be a faithful mirror of the bucket.
+                    if failures is not None:
+                        failures.append(
+                            {
+                                "artifact_id": rec.get("source_artifact_id"),
+                                "payload_sha256": sha,
+                                "error": f"{type(exc).__name__}: {exc}",
+                            }
+                        )
+                    d = None
+                if d is not None and d.format != "unknown":
                     workflow_id = d.exact_hash
                     if workflow_id not in seen:
                         seen.add(workflow_id)
@@ -408,11 +437,12 @@ def run(
 
     run_id = frontier.start_run("ingest", "_ingest") if frontier is not None else None
     totals = dict.fromkeys(TABLES, 0)
+    failures: list[dict] = []
     records = 0
     consumed = since
     try:
         for key in keys:
-            batch = transform(read_manifest(store, key), store, ref)
+            batch = transform(read_manifest(store, key), store, ref, failures=failures)
             records += len(batch["raw_artifacts"])
             for table, lines in batch.items():
                 totals[table] += ch.insert_jsonl(table, iter(lines))
@@ -426,9 +456,19 @@ def run(
         if run_id is not None:
             frontier.finish_run(run_id, items=records, manifest_key=consumed)
 
+    # Reported, not just counted. A skipped payload is a parser gap, and a gap
+    # nobody can see is one nobody fixes — the bytes stay in the bucket, so
+    # these are recoverable by re-ingesting once the parser handles them.
+    for f in failures[:10]:
+        print(f"  SKIPPED artifact {f['artifact_id']}: {f['error']}", file=sys.stderr)
+    if len(failures) > 10:
+        print(f"  ... and {len(failures) - 10} more skipped", file=sys.stderr)
+
     return {
         "manifests": len(keys),
         "records": records,
         "rows": totals,
+        "skipped": len(failures),
+        "skipped_reasons": sorted({f["error"].split(":")[0] for f in failures}),
         "watermark": consumed,
     }

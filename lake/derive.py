@@ -285,15 +285,33 @@ def _derive_save(obj: dict, ref: Reference) -> Derived:
     out.link_count = len(links)
     for link in links:
         # [link_id, origin_node, origin_slot, target_node, target_slot, type]
-        if (
-            isinstance(link, list)
-            and len(link) >= 6
-            and link[5] in MODEL_EDGE_TYPES
-            or isinstance(link, dict)
-            and link.get("type") in MODEL_EDGE_TYPES
-        ):
+        if isinstance(link, list) and len(link) >= 6:
+            edge_type = link[5]
+        elif isinstance(link, dict):
+            edge_type = link.get("type")
+        else:
+            continue
+        if _is_model_edge(edge_type):
             out.model_edges += 1
     return out
+
+
+def _is_model_edge(edge_type: Any) -> bool:
+    """Whether a link's declared type is a model edge.
+
+    The type is normally a string, but it is authored data and real workflows
+    carry a LIST there — a union like ["MODEL", "CLIP"] from nodes with
+    polymorphic slots. `x in MODEL_EDGE_TYPES` against a set then raises
+    `TypeError: unhashable type: 'list'`, which killed the whole ingest run on
+    a single artifact and cost four hours of ticks before anyone looked.
+
+    A union counts if any member is a model type: the edge really can carry one.
+    """
+    if isinstance(edge_type, str):
+        return edge_type in MODEL_EDGE_TYPES
+    if isinstance(edge_type, (list, tuple)):
+        return any(isinstance(t, str) and t in MODEL_EDGE_TYPES for t in edge_type)
+    return False
 
 
 def _save_bindings(node: dict, class_type: str, ref: Reference, node_id: str) -> list[dict]:

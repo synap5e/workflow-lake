@@ -154,12 +154,19 @@ def cmd_selftest(cfg: Config, args: argparse.Namespace) -> dict:
 
     migrations = [m.filename for m in load()]
     ref = Reference.load()
-    if not ref.core:
-        raise RuntimeError("core node reference is empty")
+    for name, value in (
+        ("core node list", ref.core),
+        ("hidden-PROMPT list", ref.hidden_prompt),
+        ("core input table", ref.core_inputs),
+        ("class_type -> pack index", ref.node_to_packs),
+    ):
+        if not value:
+            raise RuntimeError(f"{name} is empty — the package is missing reference data")
     return {
         "migrations": migrations,
         "core_class_types": len(ref.core),
         "hidden_prompt_class_types": len(ref.hidden_prompt),
+        "pack_index_class_types": len(ref.node_to_packs),
         "ok": True,
     }
 

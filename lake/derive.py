@@ -99,9 +99,7 @@ class Reference:
     def load(
         cls,
         core_path: str | pathlib.Path | None = None,
-        map_path: str | pathlib.Path = (
-            pathlib.Path.home() / "comfy" / "ComfyUI-Manager" / "extension-node-map.json"
-        ),
+        map_path: str | pathlib.Path | None = None,
         packs_path: str | pathlib.Path = "data/packs.jsonl",
     ) -> Reference:
         if core_path is None:
@@ -118,7 +116,15 @@ class Reference:
             core_doc = json.loads(core.read_text())
         node_to_packs: dict[str, list[str]] = {}
         pack_titles: dict[str, str] = {}
-        raw = json.loads(pathlib.Path(map_path).read_text())
+        if map_path is None:
+            # Packaged for the same reason as the core list: the previous default
+            # was a path under $HOME that exists on a developer machine and in no
+            # container. `lake selftest` is what surfaced it.
+            raw = json.loads(
+                files("lake").joinpath("reference/extension-node-map.json").read_text()
+            )
+        else:
+            raw = json.loads(pathlib.Path(map_path).read_text())
         for repo, value in raw.items():
             nodes = value[0] if isinstance(value, list) and value else []
             meta = value[1] if isinstance(value, list) and len(value) > 1 else {}

@@ -80,9 +80,9 @@ echo "== migrate is idempotent ==" && uv run --quiet lake migrate
 echo "== discover-tip =="       && uv run --quiet lake discover-tip --max-pages 2
 echo "== discover-backlog =="   && uv run --quiet lake discover-backlog --partitions 2
 echo "== fetch =="              && uv run --quiet lake fetch --batch 15
-echo "== clickhouse schema =="  && uv run --quiet python -c "
-from pipeline.ingest import ClickHouse
-ch = ClickHouse(); ch.execute(open('schema.sql').read()); print('applied')"
+# No explicit schema step: `lake ingest` creates its own tables now. The old
+# harness applied schema.sql by hand, which is exactly why nothing in the
+# deployment did.
 echo "== ingest =="             && uv run --quiet lake ingest
 echo "== status =="             && uv run --quiet lake status
 

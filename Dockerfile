@@ -12,7 +12,6 @@ COPY pyproject.toml README.md ./
 # see them, which is precisely the defect this layout fixes.
 COPY lake ./lake
 COPY pipeline ./pipeline
-COPY schema.sql ./schema.sql
 # gcs: the dedicated-SA path medina grants us. s3: the HMAC fallback if an org
 # policy forbids SA key creation. Both installed so the credential decision is
 # a config change rather than a rebuild.

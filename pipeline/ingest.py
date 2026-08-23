@@ -15,6 +15,7 @@ import json
 import os
 import sys
 from collections.abc import Iterator
+from importlib.resources import files
 from typing import Any
 
 import httpx
@@ -136,6 +137,33 @@ def _clickhouse_url() -> str:
 def _strip_sql(sql: str) -> str:
     """Drop `--` comments so they cannot swallow the statement separator."""
     return "\n".join(line.split("--", 1)[0] for line in sql.splitlines())
+
+
+def schema_sql() -> str:
+    """The ClickHouse DDL, from the package.
+
+    Packaged for the same reason as the Postgres migrations: an installed
+    console script resolves imports from site-packages, so a copy at /app is
+    invisible to it.
+    """
+    text = files("lake").joinpath("schema.sql").read_text()
+    if "CREATE TABLE" not in text:
+        raise RuntimeError("packaged schema.sql carries no DDL")
+    return text
+
+
+def ensure_schema(ch: ClickHouse) -> None:
+    """Create the ClickHouse tables if they are absent.
+
+    Nothing else does this. `lake migrate` handles Postgres; ClickHouse had no
+    equivalent, so the first production ingest ran against a database with zero
+    tables. It reported success only because it had no manifests to insert —
+    had there been any, every INSERT would have failed instead.
+
+    The DDL is all `CREATE TABLE IF NOT EXISTS`, so this is idempotent and cheap
+    to run at the head of every ingest.
+    """
+    ch.execute(schema_sql())
 
 
 def blob_json(store: Store, sha: str, kind: str) -> Any | None:
@@ -300,6 +328,7 @@ def run(
     """Load every manifest under `raw/` (optionally only keys after `since`)."""
     store = open_store(cfg.blob_root)
     ch = clickhouse or ClickHouse()
+    ensure_schema(ch)
     ref = ref or Reference.load()
 
     keys = [k for k in store.list("raw/") if k.endswith(".jsonl.gz")]

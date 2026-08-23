@@ -26,6 +26,11 @@ from lake.storage import BlobWriter, ManifestWriter, open_store
 
 SOURCE = "civitai"
 
+# How many artifacts may share a manifest part. Also the bound on how much
+# bookkeeping a hard kill can lose: records are flushed, then their artifacts
+# are marked done, never the other way round.
+FLUSH_EVERY = 25
+
 
 def _api_channel(client: PoliteClient, artifact_id: str) -> tuple[dict, dict]:
     """Civitai's own generation record. Returns (payloads, raw)."""
@@ -78,6 +83,9 @@ def run(
     latch = PostgresLatch(frontier)
     api = PoliteClient(rps=cfg.api_rps, user_agent=cfg.user_agent, latch=latch)
     cdn = PoliteClient(rps=cfg.cdn_rps, user_agent=cfg.user_agent, latch=latch)
+    # Worst case for one artifact is now bounded: (1 + max_retries) requests per
+    # channel at the client timeout. The deadline check between artifacts can
+    # only be as tight as that bound.
 
     items = frontier.claim(SOURCE, batch)
     print(f"leased {len(items)} artifacts (run {run_id})", file=sys.stderr)
@@ -86,7 +94,12 @@ def run(
     deadline = deadline_seconds if deadline_seconds is not None else cfg.fetch_deadline
     workflows = 0
     failed = 0
+    # Where the wall clock actually goes. The first deployment ran at ~16s an
+    # artifact against 1.7s measured outside the cluster, and nothing in the
+    # logs said which call was slow.
+    spent = {"api": 0.0, "cdn": 0.0, "store": 0.0}
     processed: set[str] = set()
+    undurable: list[str] = []
     stopped_early = None
 
     # SIGTERM is what k8s sends before SIGKILL. Finish the artifact in hand,
@@ -110,7 +123,9 @@ def run(
                 rate = index / max(elapsed, 0.001)
                 print(
                     f"  {index}/{len(items)} in {elapsed:.0f}s ({rate:.2f}/s, "
-                    f"{workflows} workflows)",
+                    f"{workflows} workflows) "
+                    f"[api {spent['api'] / index:.2f}s cdn {spent['cdn'] / index:.2f}s "
+                    f"store {spent['store'] / index:.2f}s per artifact]",
                     file=sys.stderr,
                 )
             artifact_id = row["artifact_id"]
@@ -120,17 +135,24 @@ def run(
                 # The listing does not carry the CDN path, so the artifact's own
                 # record is what resolves it. It also refreshes the sidecar, which
                 # may have changed since discovery.
+                _t = time.time()
                 record = civitai.image_get(api, artifact_id)
+                spent["api"] += time.time() - _t
                 if record is None:
                     frontier.finish(SOURCE, artifact_id, "skipped", "gone (404)")
                     continue
                 url = civitai.image_url(record)
                 side = civitai.sidecar(record)
 
+                _t = time.time()
                 result = fetch_bytes(cdn, url, keep_prefix=keep_prefix)
+                spent["cdn"] += time.time() - _t
+
+                _t = time.time()
                 prefix_sha = None
                 if keep_prefix and result.prefix:
                     prefix_sha, _, _ = blobs.put(result.prefix, "prefix")
+                spent["store"] += time.time() - _t
 
                 wrote_any = False
                 for kind in ("workflow", "prompt"):
@@ -202,8 +224,16 @@ def run(
                             prefix_sha=prefix_sha,
                         )
                     )
-                frontier.finish(SOURCE, artifact_id, "done")
+                # NOT marked done yet: an artifact is only done once the record
+                # describing it is durable, or a kill leaves a done row whose
+                # blobs nothing references.
+                undurable.append(artifact_id)
                 processed.add(artifact_id)
+                if len(undurable) >= FLUSH_EVERY:
+                    manifest.flush()
+                    for done_id in undurable:
+                        frontier.finish(SOURCE, done_id, "done")
+                    undurable.clear()
             except (civitai.AuthRequired, HostBlocked):
                 processed.add(artifact_id)
                 # Not this artifact's problem — every remaining one will fail the
@@ -216,10 +246,19 @@ def run(
                 frontier.finish(SOURCE, artifact_id, "failed", f"{type(exc).__name__}: {exc}")
                 processed.add(artifact_id)
     finally:
+        # Flush first, then mark the tail done — same ordering as the loop.
+        try:
+            manifest.flush()
+            for done_id in undurable:
+                frontier.finish(SOURCE, done_id, "done")
+            undurable.clear()
+        except Exception as exc:  # leave them leased rather than falsely done
+            print(f"final manifest flush failed: {exc}", file=sys.stderr)
         # Anything leased but not reached goes straight back to pending, so the
         # next tick picks it up in seconds rather than after the lease expires.
         released = frontier.release(
-            SOURCE, [r["artifact_id"] for r in items if r["artifact_id"] not in processed]
+            SOURCE,
+            [r["artifact_id"] for r in items if r["artifact_id"] not in processed] + undurable,
         )
         key = manifest.commit()
         api.close()
@@ -230,6 +269,7 @@ def run(
         "processed": len(processed),
         "released": released,
         "stopped_early": stopped_early,
+        "seconds_per_artifact": {k: round(v / max(len(processed), 1), 2) for k, v in spent.items()},
         "workflows": workflows,
         "failed": failed,
         "records": manifest.count,

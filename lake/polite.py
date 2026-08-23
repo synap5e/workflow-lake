@@ -97,8 +97,8 @@ class PoliteClient:
         self,
         *,
         rps: float = 1.5,
-        timeout: float = 45.0,
-        max_retries: int = 3,
+        timeout: float = 20.0,
+        max_retries: int = 2,
         forbidden_budget: int = 8,
         user_agent: str | None = None,
         latch: LatchSink | None = None,
@@ -122,7 +122,11 @@ class PoliteClient:
             follow_redirects=True,
             # Separate connect timeout so a dead route fails fast rather than
             # burning the whole request budget on a TCP handshake.
-            timeout=httpx.Timeout(timeout, connect=10.0),
+            # A crawler's per-request budget has to be small relative to the
+            # job's: three retries at a 45s timeout is over two minutes on ONE
+            # artifact, which is how a 600s deadline turned into a 16-minute
+            # job that the kubelet had to kill.
+            timeout=httpx.Timeout(timeout, connect=5.0),
             transport=transport,
             http2=False,
         )

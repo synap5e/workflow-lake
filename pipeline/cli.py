@@ -152,8 +152,10 @@ def cmd_selftest(cfg: Config, args: argparse.Namespace) -> dict:
     """
     from lake.derive import Reference
     from lake.migrate import load
+    from pipeline.ingest import schema_sql
 
     migrations = [m.filename for m in load()]
+    clickhouse_ddl = schema_sql().count("CREATE TABLE")
     ref = Reference.load()
     for name, value in (
         ("core node list", ref.core),
@@ -165,6 +167,7 @@ def cmd_selftest(cfg: Config, args: argparse.Namespace) -> dict:
             raise RuntimeError(f"{name} is empty — the package is missing reference data")
     return {
         "migrations": migrations,
+        "clickhouse_tables": clickhouse_ddl,
         "core_class_types": len(ref.core),
         "hidden_prompt_class_types": len(ref.hidden_prompt),
         "pack_index_class_types": len(ref.node_to_packs),

@@ -38,8 +38,8 @@ def blob_key(sha: bytes, kind: str) -> str:
     return f"blob/{hexed[:2]}/{hexed}.{suffix}.gz"
 
 
-def manifest_key(source: str, run_id: str, when: dt.datetime) -> str:
-    return f"raw/{source}/{when:%Y-%m}/{run_id}.jsonl.gz"
+def manifest_key(source: str, run_id: str, when: dt.datetime, part: int = 0) -> str:
+    return f"raw/{source}/{when:%Y-%m}/{run_id}-{part:04d}.jsonl.gz"
 
 
 class Store(Protocol):
@@ -96,7 +96,19 @@ class GCSStore:
 
         parsed = urlparse(url)
         self.prefix = parsed.path.strip("/")
-        self.bucket = storage.Client().bucket(parsed.netloc)
+
+        # Build the client explicitly from the key file rather than letting
+        # Application Default Credentials discover things. ADC probes the GCE
+        # metadata server at 169.254.169.254 for identity and project — and this
+        # workload's egress policy blackholes link-local by design, so every
+        # probe waits for a timeout instead of failing fast. Explicit
+        # credentials and an explicit project skip that path entirely.
+        key_file = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
+        if key_file and pathlib.Path(key_file).exists():
+            client = storage.Client.from_service_account_json(key_file)
+        else:
+            client = storage.Client()
+        self.bucket = client.bucket(parsed.netloc)
 
     def _key(self, key: str) -> str:
         return f"{self.prefix}/{key}" if self.prefix else key
@@ -180,23 +192,50 @@ def open_store(root: str) -> Store:
 
 
 class ManifestWriter:
-    """Buffers a run's capture records and writes them as one gzipped object."""
+    """A run's capture records, written as one or more gzipped parts.
+
+    Parts rather than a single object at the end, because a single object is
+    only written if the process survives to write it. A fetch job killed
+    mid-batch had already streamed its blobs to the bucket but lost every record
+    describing them — the blobs were orphaned and unreferenceable, and the
+    artifacts were marked done, so nothing would ever fetch them again.
+
+    Ingest globs `raw/**.jsonl.gz`, so multiple parts per run need no special
+    handling downstream.
+    """
 
     def __init__(self, store: Store, source: str, run_id: str) -> None:
         self.store = store
-        self.key = manifest_key(source, run_id, dt.datetime.now(dt.UTC))
+        self.source = source
+        self.run_id = run_id
+        self.when = dt.datetime.now(dt.UTC)
         self.buffer = io.StringIO()
+        self.pending = 0
         self.count = 0
+        self.part = 0
+        self.keys: list[str] = []
 
     def write(self, record: dict[str, Any]) -> None:
         self.buffer.write(json.dumps(record, default=str) + "\n")
+        self.pending += 1
         self.count += 1
 
-    def commit(self) -> str | None:
-        if not self.count:
+    def flush(self) -> str | None:
+        """Persist what is buffered. Callers must not mark work done until this
+        has returned for the records covering it."""
+        if not self.pending:
             return None
-        self.store.put(self.key, gzip.compress(self.buffer.getvalue().encode()))
-        return self.key
+        key = manifest_key(self.source, self.run_id, self.when, self.part)
+        self.store.put(key, gzip.compress(self.buffer.getvalue().encode()))
+        self.keys.append(key)
+        self.buffer = io.StringIO()
+        self.pending = 0
+        self.part += 1
+        return key
+
+    def commit(self) -> str | None:
+        self.flush()
+        return self.keys[-1] if self.keys else None
 
 
 def read_manifest(store: Store, key: str) -> list[dict]:

@@ -279,7 +279,7 @@ def _derive_save(obj: dict, ref: Reference) -> Derived:
             out.muted_or_bypassed += 1
         if class_type in ref.hidden_prompt:
             out.hidden_prompt_nodes += 1
-        out.bindings.extend(_save_bindings(node, class_type, ref))
+        out.bindings.extend(_save_bindings(node, class_type, ref, str(node.get("id"))))
 
     links = obj.get("links") or []
     out.link_count = len(links)
@@ -296,7 +296,7 @@ def _derive_save(obj: dict, ref: Reference) -> Derived:
     return out
 
 
-def _save_bindings(node: dict, class_type: str, ref: Reference) -> list[dict]:
+def _save_bindings(node: dict, class_type: str, ref: Reference, node_id: str) -> list[dict]:
     """Literal-vs-link for each loader input this node declares.
 
     In the save format a widget that has been fed by a link appears in `inputs[]`
@@ -321,6 +321,7 @@ def _save_bindings(node: dict, class_type: str, ref: Reference) -> list[dict]:
         seen.add(name)
         rows.append(
             {
+                "node_id": node_id,
                 "class_type": class_type,
                 "input": name,
                 "binding": "link" if is_linked else "literal",
@@ -332,6 +333,7 @@ def _save_bindings(node: dict, class_type: str, ref: Reference) -> list[dict]:
             if name in LOADER_INPUTS and name not in seen:
                 rows.append(
                     {
+                        "node_id": node_id,
                         "class_type": class_type,
                         "input": name,
                         "binding": "literal",
@@ -369,6 +371,7 @@ def _derive_api(obj: dict, ref: Reference) -> Derived:
             if name in LOADER_INPUTS:
                 out.bindings.append(
                     {
+                        "node_id": str(node_id),
                         "class_type": class_type,
                         "input": name,
                         "binding": "link" if is_link else "literal",

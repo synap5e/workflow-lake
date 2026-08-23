@@ -478,3 +478,132 @@ def test_barren_artifacts_are_finished_not_left_leased(monkeypatch, tmp_path) ->
     assert stats["processed"] == 3
     assert f.released == [], "a skipped row is finished, not handed back"
     assert set(f.finished.values()) == {"skipped"}
+
+
+def test_every_ingested_table_dedupes_on_reinsert() -> None:
+    """The regression that cost 5-6x duplication in production.
+
+    `raw_artifacts`, `derived_workflow_nodes` and `derived_workflow_bindings`
+    shipped as plain MergeTree. Ingest re-read every manifest on every tick
+    (see the watermark test below), so those three accumulated a copy of every
+    row per run while the two ReplacingMergeTree tables stayed correct.
+
+    The old e2e asserted "re-ingest is idempotent" against `derived_workflows`
+    alone — the table that was already safe — so it passed throughout.
+    """
+    from pipeline.ingest import TABLES, expected_engines
+
+    engines = expected_engines()
+    plain = [t for t in TABLES if engines.get(t) != "ReplacingMergeTree"]
+    assert plain == [], (
+        f"{plain} would duplicate rows if a manifest is ever ingested twice. "
+        f"The bucket is the system of record and these tables are rebuildable, "
+        f"so loading the same manifest twice has to be a no-op."
+    )
+
+
+def test_bindings_rows_are_distinguishable_per_node() -> None:
+    """Without node_id, a binding row has no unique key at all.
+
+    Two nodes of the same class declaring the same input in one workflow
+    produced byte-identical rows, so nothing could tell a genuine second
+    instance from a re-ingest. Deduplicating would then have silently changed
+    the flagship literal-vs-link counts from per-instance to per-distinct-tuple.
+    """
+    from lake.derive import Reference, derive
+
+    ref = Reference.load()
+    graph = {
+        "1": {"class_type": "CheckpointLoaderSimple", "inputs": {"ckpt_name": "a.safetensors"}},
+        "2": {"class_type": "CheckpointLoaderSimple", "inputs": {"ckpt_name": "a.safetensors"}},
+    }
+    d = derive(graph, ref)
+    ckpt = [b for b in d.bindings if b["input"] == "ckpt_name"]
+
+    assert len(ckpt) == 2, "both loader instances must be represented"
+    assert {b["node_id"] for b in ckpt} == {"1", "2"}
+    keys = {(b["node_id"], b["class_type"], b["input"], b["binding"]) for b in ckpt}
+    assert len(keys) == 2, "identical rows cannot be deduplicated without losing a real instance"
+
+
+class WatermarkFrontier:
+    """Records what ingest reads and writes for its watermark."""
+
+    def __init__(self, cursor: str | None = None) -> None:
+        self.cursor = cursor
+        self.runs: list[str] = []
+        self.finished: dict = {}
+
+    def get_cursor(self, source, stream):
+        return {"cursor": self.cursor} if self.cursor else None
+
+    def set_cursor(self, source, stream, cursor, frontier_id):
+        self.cursor = cursor
+
+    def start_run(self, job, source):
+        self.runs.append(job)
+        return "run-1"
+
+    def finish_run(self, run_id, **kw):
+        self.finished = kw
+
+
+def test_ingest_resumes_from_its_watermark_instead_of_the_whole_bucket(monkeypatch) -> None:
+    """The root cause. `run` computed a watermark, returned it, and nobody stored it.
+
+    `--since` existed but the CronJob never passed it, so every hourly tick
+    re-read every manifest ever written. Cost grew with the size of the bucket
+    rather than with the work actually available.
+    """
+    from lake.config import Config
+    from pipeline import ingest
+
+    seen: list[str] = []
+
+    class FakeStore:
+        def list(self, prefix):
+            return ["raw/c/0001.jsonl.gz", "raw/c/0002.jsonl.gz", "raw/c/0003.jsonl.gz"]
+
+    class FakeCH:
+        database = "workflow_lake"
+
+        def execute(self, sql):
+            return ""
+
+        def query(self, sql):
+            return ""
+
+        def insert_jsonl(self, table, lines):
+            return len(list(lines))
+
+    monkeypatch.setattr(ingest, "open_store", lambda root: FakeStore())
+    monkeypatch.setattr(ingest, "ensure_schema", lambda ch: None)
+    monkeypatch.setattr(ingest.Reference, "load", staticmethod(lambda: None))
+    monkeypatch.setattr(ingest, "read_manifest", lambda store, key: seen.append(key) or [])
+    monkeypatch.setattr(
+        ingest, "transform", lambda recs, store, ref: dict.fromkeys(ingest.TABLES, [])
+    )
+    cfg = Config(
+        database_url="",
+        blob_root="/x",
+        user_agent="t",
+        civitai_api_key=None,
+        api_rps=1,
+        cdn_rps=1,
+        keep_prefix_days=90,
+        fetch_deadline=600.0,
+    )
+
+    # Cold start: nothing consumed yet, so everything is new.
+    f = WatermarkFrontier()
+    out = ingest.run(cfg, clickhouse=FakeCH(), frontier=f)
+    assert out["manifests"] == 3
+    assert f.cursor == "raw/c/0003.jsonl.gz", "the watermark must be persisted, not just returned"
+
+    # Second tick: the same bucket, nothing new. This is the run that used to
+    # re-ingest all three and multiply every row.
+    seen.clear()
+    out = ingest.run(cfg, clickhouse=FakeCH(), frontier=f)
+    assert out["manifests"] == 0
+    assert seen == [], "already-consumed manifests must not be re-read"
+    assert f.runs == ["ingest", "ingest"], "ingest must appear in crawl_run like every other job"

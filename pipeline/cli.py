@@ -102,9 +102,20 @@ def cmd_fetch(cfg: Config, args: argparse.Namespace) -> dict:
 
 
 def cmd_ingest(cfg: Config, args: argparse.Namespace) -> dict:
+    """Load new manifests into ClickHouse.
+
+    The frontier is passed so ingest can read and advance its watermark, and so
+    the run lands in `crawl_run` like every other job. It previously did
+    neither: `--since` existed but the CronJob never passed it, and nothing
+    persisted the value, so each tick re-ingested the whole bucket.
+    """
     from pipeline import ingest
 
-    return ingest.run(cfg, since=args.since, limit_manifests=args.limit)
+    frontier = _frontier(cfg)
+    try:
+        return ingest.run(cfg, since=args.since, limit_manifests=args.limit, frontier=frontier)
+    finally:
+        frontier.close()
 
 
 def cmd_gc(cfg: Config, args: argparse.Namespace) -> dict:

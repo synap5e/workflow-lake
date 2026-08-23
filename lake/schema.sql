@@ -61,9 +61,15 @@ CREATE TABLE IF NOT EXISTS raw_artifacts
     payload_bytes       UInt32,
     workflow_id         String                      -- FK to derived_workflows, '' if none
 )
-ENGINE = MergeTree
+-- Replacing, not plain MergeTree: ingest re-reads a manifest whenever the
+-- watermark is lost or a rebuild is forced, and the design says the bucket is
+-- the system of record and this layer is disposable. That is only true if
+-- loading the same manifest twice is a no-op. `capture_id` is in the key
+-- because it, not (artifact, channel, time), is what uniquely identifies one
+-- fetch event.
+ENGINE = ReplacingMergeTree
 PARTITION BY (source, toYYYYMM(crawled_at))
-ORDER BY (source, source_artifact_id, channel, crawled_at);
+ORDER BY (source, source_artifact_id, channel, crawled_at, capture_id);
 
 -- In production this is the same data read straight off the bucket, so a
 -- rebuild never depends on ClickHouse having kept anything:
@@ -149,22 +155,34 @@ CREATE TABLE IF NOT EXISTS derived_workflow_nodes
         ORDER BY class_type
     )
 )
-ENGINE = MergeTree
-ORDER BY (workflow_id, node_id);
+ENGINE = ReplacingMergeTree
+ORDER BY (workflow_id, node_id)
+-- ClickHouse refuses a projection on a ReplacingMergeTree unless told what to
+-- do when a merge collapses rows the projection has already aggregated.
+-- 'rebuild' recomputes it and keeps the point lookup correct; 'drop' would
+-- silently discard the projection on the first dedup merge, turning the
+-- by-class-type lookup back into a full scan with nothing to indicate it.
+SETTINGS deduplicate_merge_projection_mode = 'rebuild';
 
 -- Loader inputs, one row per (node, input). `binding` is the flagship column:
 -- 'literal' means the workflow names the file, 'link' means an upstream node
 -- picks it at run time and the name is not knowable statically.
+-- `node_id` is here so the row has a unique key. Without it two nodes of the
+-- same class declaring the same input in one workflow produce byte-identical
+-- rows, which makes re-ingest indistinguishable from real repetition and makes
+-- deduplication impossible without changing what the counts mean. The queries
+-- want instance-level counts, so the fix is a real key rather than collapsing.
 CREATE TABLE IF NOT EXISTS derived_workflow_bindings
 (
     workflow_id     String,
+    node_id         String,
     class_type      String,
     input           LowCardinality(String),         -- ckpt_name, unet_name, lora_name, ...
     binding         LowCardinality(String),         -- literal | link
     evidence        LowCardinality(String)          -- api.inputs | save.inputs | save.widget
 )
-ENGINE = MergeTree
-ORDER BY (input, binding, class_type, workflow_id);
+ENGINE = ReplacingMergeTree
+ORDER BY (input, binding, class_type, workflow_id, node_id);
 
 -- ---------------------------------------------------------------------------
 -- PACK DIMENSION

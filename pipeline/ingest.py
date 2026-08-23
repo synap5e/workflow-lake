@@ -162,8 +162,54 @@ def ensure_schema(ch: ClickHouse) -> None:
 
     The DDL is all `CREATE TABLE IF NOT EXISTS`, so this is idempotent and cheap
     to run at the head of every ingest.
+
+    It also reconciles the ENGINE, because `IF NOT EXISTS` silently accepts a
+    table that already exists with the wrong one. Three tables shipped as plain
+    `MergeTree` and duplicated every row on each re-ingest — 5-6x before anyone
+    looked — and no amount of corrected DDL would have repaired them, because
+    the create was being skipped. Dropping and recreating is safe here in a way
+    it would not be for a primary store: every one of these tables is derived
+    from manifests in the bucket, which is the system of record, so a rebuild
+    costs a re-read and loses nothing.
     """
     ch.execute(schema_sql())
+
+    want = expected_engines()
+    have = dict(
+        line.split("\t", 1)
+        for line in ch.query(
+            f"SELECT name, engine FROM system.tables WHERE database = '{ch.database}' FORMAT TSV"
+        ).splitlines()
+        if "\t" in line
+    )
+    stale = {t: have[t] for t, engine in want.items() if t in have and have[t] != engine}
+    for table, actual in stale.items():
+        print(
+            f"  schema: {table} is {actual}, want {want[table]} — "
+            f"dropping and rebuilding it from the bucket",
+            file=sys.stderr,
+        )
+        ch.execute(f"DROP TABLE IF EXISTS {table}")
+    if stale:
+        ch.execute(schema_sql())
+
+
+def expected_engines() -> dict[str, str]:
+    """Table -> engine name, parsed from the shipped DDL.
+
+    Parsed rather than listed here, so this check cannot drift away from
+    `schema.sql` the way the schema itself drifted away from the deployment.
+    """
+    out: dict[str, str] = {}
+    table = None
+    for raw in schema_sql().splitlines():
+        line = raw.strip()
+        if line.upper().startswith("CREATE TABLE IF NOT EXISTS"):
+            table = line.split()[-1].rstrip("(").strip()
+        elif line.upper().startswith("ENGINE =") and table:
+            out[table] = line.split("=", 1)[1].strip().split("(")[0].strip()
+            table = None
+    return out
 
 
 def blob_json(store: Store, sha: str, kind: str) -> Any | None:
@@ -254,6 +300,7 @@ def transform(records: list[dict], store: Store, ref: Reference) -> dict[str, li
                                 json.dumps(
                                     {
                                         "workflow_id": workflow_id,
+                                        "node_id": b.get("node_id", ""),
                                         "class_type": b["class_type"],
                                         "input": b["input"],
                                         "binding": b["binding"],
@@ -317,6 +364,9 @@ def transform(records: list[dict], store: Store, ref: Reference) -> dict[str, li
     return out
 
 
+WATERMARK_STREAM = "ingest"
+
+
 def run(
     cfg: Config,
     *,
@@ -324,12 +374,31 @@ def run(
     clickhouse: ClickHouse | None = None,
     ref: Reference | None = None,
     limit_manifests: int | None = None,
+    frontier=None,
 ) -> dict:
-    """Load every manifest under `raw/` (optionally only keys after `since`)."""
+    """Load manifests under `raw/` that this has not already loaded.
+
+    The watermark is the manifest key of the last one consumed, and it is
+    PERSISTED. Before, `run` computed it, returned it in the stats, and nobody
+    wrote it down — so every hourly tick re-read every manifest from the
+    beginning of time and re-inserted every row. The tables that could absorb
+    that were `ReplacingMergeTree`; the three that could not reached 5-6x
+    duplication, and the cost of a run grew with the size of the bucket rather
+    than with the work done.
+
+    Both halves of the fix matter and neither is sufficient. The watermark stops
+    the pointless re-reading. Idempotent engines mean a lost watermark, a forced
+    rebuild, or a re-run of a partially-failed tick stays correct instead of
+    silently multiplying rows.
+    """
     store = open_store(cfg.blob_root)
     ch = clickhouse or ClickHouse()
     ensure_schema(ch)
     ref = ref or Reference.load()
+
+    if since is None and frontier is not None:
+        state = frontier.get_cursor("_ingest", WATERMARK_STREAM) or {}
+        since = state.get("cursor")
 
     keys = [k for k in store.list("raw/") if k.endswith(".jsonl.gz")]
     if since:
@@ -337,18 +406,29 @@ def run(
     if limit_manifests:
         keys = keys[:limit_manifests]
 
+    run_id = frontier.start_run("ingest", "_ingest") if frontier is not None else None
     totals = dict.fromkeys(TABLES, 0)
     records = 0
-    for key in keys:
-        batch = transform(read_manifest(store, key), store, ref)
-        records += len(batch["raw_artifacts"])
-        for table, lines in batch.items():
-            totals[table] += ch.insert_jsonl(table, iter(lines))
-        print(f"  {key}: {len(batch['raw_artifacts'])} records", file=sys.stderr)
+    consumed = since
+    try:
+        for key in keys:
+            batch = transform(read_manifest(store, key), store, ref)
+            records += len(batch["raw_artifacts"])
+            for table, lines in batch.items():
+                totals[table] += ch.insert_jsonl(table, iter(lines))
+            # Advanced per manifest, not once at the end: a run killed halfway
+            # then resumes after the last manifest it actually finished.
+            consumed = key
+            if frontier is not None:
+                frontier.set_cursor("_ingest", WATERMARK_STREAM, consumed, None)
+            print(f"  {key}: {len(batch['raw_artifacts'])} records", file=sys.stderr)
+    finally:
+        if run_id is not None:
+            frontier.finish_run(run_id, items=records, manifest_key=consumed)
 
     return {
         "manifests": len(keys),
         "records": records,
         "rows": totals,
-        "watermark": keys[-1] if keys else since,
+        "watermark": consumed,
     }

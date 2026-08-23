@@ -77,9 +77,47 @@ nix shell nixpkgs#postgresql --command psql -h "$PGHOST" -U postgres -d workflow
 
 echo "== migrate =="            && uv run --quiet lake migrate
 echo "== migrate is idempotent ==" && uv run --quiet lake migrate
-echo "== discover-tip =="       && uv run --quiet lake discover-tip --max-pages 2
-echo "== discover-backlog =="   && uv run --quiet lake discover-backlog --partitions 2
-echo "== fetch =="              && uv run --quiet lake fetch --batch 15
+
+# Civitai's tRPC listing is auth-gated, so without a key the crawl half cannot
+# run at all. That used to abort the whole script at discover-tip, which meant
+# the ingest assertions below — the ones that catch duplication — never ran
+# anywhere except a machine holding a credential. CI does not hold one either.
+# Offline mode seeds a manifest directly so the ingest half is always covered.
+if [[ -n "${CIVITAI_API_KEY:-}" ]]; then
+  echo "== discover-tip =="       && uv run --quiet lake discover-tip --max-pages 2
+  echo "== discover-backlog =="   && uv run --quiet lake discover-backlog --partitions 2
+  echo "== fetch =="              && uv run --quiet lake fetch --batch 15
+else
+  echo "== no CIVITAI_API_KEY: seeding a manifest instead of crawling =="
+  uv run --quiet python - <<'SEED'
+import json, os, uuid
+from lake.config import Config
+from lake.db import Frontier
+from lake.storage import open_store, ManifestWriter, BlobWriter
+from tests.fixtures import WORKFLOW_JSON
+
+cfg = Config.from_env()
+store = open_store(cfg.blob_root)
+frontier = Frontier(cfg.database_url)
+blobs = BlobWriter(store, frontier, cfg.keep_prefix_days)
+mw = ManifestWriter(store, "civitai", str(uuid.uuid4()))
+sha, _key, size = blobs.put(WORKFLOW_JSON.encode(), "workflow")
+for i in range(3):
+    mw.write({
+        "capture_id": f"cap-{i}", "crawled_at": "2026-08-23T00:00:00",
+        "crawler_version": "e2e", "source": "civitai", "channel": "bytes_head",
+        "source_artifact_id": str(1000 + i), "parent_url": "", "fetch_url": "",
+        "author": "", "author_id": "", "title": "", "description": "", "tags": [],
+        "published_at": None, "stats": {}, "source_meta": "{}",
+        "http_status": 206, "content_type": "image/png", "container": "png",
+        "total_size": 1000, "bytes_fetched": 500, "needed_bytes": 400,
+        "windows": [131072], "from_tail": False,
+        "payload_kind": "workflow", "payload_sha256": sha, "payload_bytes": size,
+    })
+print(" seeded", mw.commit())
+frontier.close()
+SEED
+fi
 # No explicit schema step: `lake ingest` creates its own tables now. The old
 # harness applied schema.sql by hand, which is exactly why nothing in the
 # deployment did.
@@ -92,9 +130,39 @@ ch_q "SELECT count(), countIf(workflow_id != '') FROM raw_artifacts FORMAT TSV"
 ch_q "SELECT format, count(), sum(node_count) FROM derived_workflows GROUP BY format FORMAT TSV"
 ch_q "SELECT class_type, count() n FROM derived_workflow_nodes GROUP BY class_type ORDER BY n DESC LIMIT 3 FORMAT TSV"
 
-echo "== re-ingest is idempotent (ReplacingMergeTree) =="
-uv run --quiet lake ingest >/dev/null
-ch_q "SELECT count(), uniqExact(workflow_id) FROM derived_workflows FINAL FORMAT TSV"
+# This check used to look at derived_workflows alone — the table that was
+# already ReplacingMergeTree — and so passed while three plain-MergeTree tables
+# duplicated every row on each re-ingest, reaching 5-6x in production. Forcing
+# --since '' replays the whole bucket, which is exactly what the missing
+# watermark used to do on every tick.
+echo "== re-ingest of the SAME manifests adds no logical rows, every table =="
+TABLES="raw_artifacts derived_workflows derived_artifact_workflows derived_workflow_nodes derived_workflow_bindings"
+declare -A before_rows
+for t in $TABLES; do before_rows[$t]=$(ch_q "SELECT count() FROM $t FINAL FORMAT TSV"); done
+uv run --quiet lake ingest --since '' >/dev/null
+for t in $TABLES; do
+  after=$(ch_q "SELECT count() FROM $t FINAL FORMAT TSV")
+  if [[ "${before_rows[$t]}" != "$after" ]]; then
+    echo "  FAIL: $t went ${before_rows[$t]} -> $after on re-ingest"; exit 1
+  fi
+done
+# ReplacingMergeTree collapses on merge, so physical > logical is normal until
+# one happens. Forcing it proves the duplicates are actually reclaimed rather
+# than merely hidden behind FINAL — which is what the storage projection needs.
+for t in $TABLES; do
+  ch_q "OPTIMIZE TABLE $t FINAL" >/dev/null
+  n=$(ch_q "SELECT count() FROM $t FORMAT TSV")
+  u=$(ch_q "SELECT count() FROM $t FINAL FORMAT TSV")
+  [[ "$n" == "$u" ]] || { echo "  FAIL: $t keeps $n physical rows for $u logical after merge"; exit 1; }
+  [[ "${before_rows[$t]}" -gt 0 ]] || { echo "  FAIL: $t is empty — the check proves nothing"; exit 1; }
+  echo "  $t: $n rows, deduplicated on merge"
+done
+
+echo "== the watermark is persisted, so a second tick reads nothing =="
+again=$(uv run --quiet lake ingest)
+echo "$again" | grep -q '"manifests": 0' \
+  && echo "  second ingest consumed 0 manifests — correct" \
+  || { echo "  FAIL: re-read manifests it had already consumed:"; echo "$again"; exit 1; }
 
 echo "== migrate --check reports nothing pending =="
 uv run --quiet lake migrate --check

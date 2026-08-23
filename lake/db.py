@@ -131,6 +131,28 @@ class Frontier:
                 (state, (error or "")[:500] or None, source, artifact_id),
             )
 
+    def release(self, source: str, artifact_ids: list[str]) -> int:
+        """Hand leases back immediately instead of waiting for them to expire.
+
+        A job that is killed mid-batch otherwise holds its whole lease window —
+        15 minutes during which the next tick finds nothing claimable and exits
+        having done nothing. With a batch that cannot finish inside the job
+        deadline, that is a livelock: lease everything, do a little, die, idle,
+        repeat.
+        """
+        if not artifact_ids:
+            return 0
+        with self.tx() as cur:
+            cur.execute(
+                """
+                UPDATE crawl_queue
+                   SET state = 'pending', lease_until = NULL, updated_at = now()
+                 WHERE source = %s AND artifact_id = ANY(%s) AND state = 'leased'
+                """,
+                (source, artifact_ids),
+            )
+            return cur.rowcount
+
     def posts_already_captured(self, source: str, post_ids: list[str]) -> set[str]:
         """Which of these posts we already have an artifact for.
 

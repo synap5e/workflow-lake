@@ -77,6 +77,10 @@ def discover_tip(
 ) -> dict:
     """Page Newest until we reach known ground."""
     gate(frontier, civitai.EGRESS_HOSTS)
+    # Recorded like fetch: `crawl_run` is what a "no successful run in N hours"
+    # alert reads, and discovery silently absent from it would make a stalled
+    # crawler look healthy.
+    run_id = frontier.start_run("discover-tip", SOURCE)
     client = PoliteClient(rps=cfg.api_rps, user_agent=cfg.user_agent, latch=PostgresLatch(frontier))
     state = frontier.get_cursor(SOURCE, "tip") or {}
     frontier_id = int(state.get("frontier_id") or 0)
@@ -115,6 +119,9 @@ def discover_tip(
         client.close()
 
     frontier.set_cursor(SOURCE, "tip", None, str(newest_seen) if newest_seen else None)
+    frontier.finish_run(
+        run_id, items=queued, requests=client.stats.requests, bytes_down=client.stats.bytes_down
+    )
     return {
         "pages": pages,
         "queued": queued,
@@ -136,6 +143,7 @@ def discover_backlog(
 ) -> dict:
     """Drain un-swept partitions, one at a time, resuming where each left off."""
     gate(frontier, civitai.EGRESS_HOSTS)
+    run_id = frontier.start_run("discover-backlog", SOURCE)
     client = PoliteClient(rps=cfg.api_rps, user_agent=cfg.user_agent, latch=PostgresLatch(frontier))
     queued = drained = exhausted = 0
     try:
@@ -183,6 +191,9 @@ def discover_backlog(
     finally:
         client.close()
 
+    frontier.finish_run(
+        run_id, items=queued, requests=client.stats.requests, bytes_down=client.stats.bytes_down
+    )
     return {
         "partitions_drained": drained,
         "partitions_exhausted": exhausted,

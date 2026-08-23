@@ -42,6 +42,7 @@ class Config:
     api_rps: float
     cdn_rps: float
     keep_prefix_days: int
+    fetch_deadline: float
 
     @classmethod
     def from_env(cls) -> Config:
@@ -59,4 +60,7 @@ class Config:
             api_rps=float(os.environ.get("LAKE_API_RPS", "1.5")),
             cdn_rps=float(os.environ.get("LAKE_CDN_RPS", "5.0")),
             keep_prefix_days=int(os.environ.get("LAKE_KEEP_PREFIX_DAYS", "90")),
+            # Below the job's activeDeadlineSeconds, so the batch stops itself
+            # and returns its leases rather than being SIGKILLed holding them.
+            fetch_deadline=float(os.environ.get("LAKE_FETCH_DEADLINE", "600")),
         )

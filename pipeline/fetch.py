@@ -11,6 +11,7 @@ the API host (`civitai.com`) and the image CDN.
 
 from __future__ import annotations
 
+import signal
 import sys
 import time
 from typing import Any
@@ -53,7 +54,16 @@ def run(
     batch: int = 200,
     keep_prefix: bool = True,
     use_api: bool = True,
+    deadline_seconds: float | None = None,
 ) -> dict:
+    """Capture a leased batch, bounded by wall clock as well as by size.
+
+    The size bound alone is not enough. Throughput depends on the source's rate
+    limit, not on us, so any fixed batch is a guess — and a batch that cannot
+    finish inside the job's `activeDeadlineSeconds` gets SIGKILLed holding every
+    lease it took, which starves the next tick for a full lease window. The
+    deadline here is the real limit; `--batch` is only a ceiling.
+    """
     import json
 
     # Refuse to start if a source we need has told us to stop. Checked before
@@ -73,11 +83,36 @@ def run(
     print(f"leased {len(items)} artifacts (run {run_id})", file=sys.stderr)
 
     started = time.time()
+    deadline = deadline_seconds if deadline_seconds is not None else cfg.fetch_deadline
     workflows = 0
     failed = 0
+    processed: set[str] = set()
+    stopped_early = None
+
+    # SIGTERM is what k8s sends before SIGKILL. Finish the artifact in hand,
+    # then stop and hand the rest back.
+    terminating = False
+
+    def on_term(_sig, _frame):
+        nonlocal terminating
+        terminating = True
+        print("SIGTERM: finishing current artifact, then releasing leases", file=sys.stderr)
+
+    signal.signal(signal.SIGTERM, on_term)
 
     try:
-        for row in items:
+        for index, row in enumerate(items):
+            elapsed = time.time() - started
+            if terminating or elapsed > deadline:
+                stopped_early = "sigterm" if terminating else "deadline"
+                break
+            if index and index % 50 == 0:
+                rate = index / max(elapsed, 0.001)
+                print(
+                    f"  {index}/{len(items)} in {elapsed:.0f}s ({rate:.2f}/s, "
+                    f"{workflows} workflows)",
+                    file=sys.stderr,
+                )
             artifact_id = row["artifact_id"]
             prefilter = row.get("prefilter") or {}
             parent_url = f"https://civitai.com/images/{artifact_id}"
@@ -168,7 +203,9 @@ def run(
                         )
                     )
                 frontier.finish(SOURCE, artifact_id, "done")
+                processed.add(artifact_id)
             except (civitai.AuthRequired, HostBlocked):
+                processed.add(artifact_id)
                 # Not this artifact's problem — every remaining one will fail the
                 # same way. Return the lease and stop rather than burning the
                 # queue into `failed` one row at a time.
@@ -177,13 +214,22 @@ def run(
             except Exception as exc:
                 failed += 1
                 frontier.finish(SOURCE, artifact_id, "failed", f"{type(exc).__name__}: {exc}")
+                processed.add(artifact_id)
     finally:
+        # Anything leased but not reached goes straight back to pending, so the
+        # next tick picks it up in seconds rather than after the lease expires.
+        released = frontier.release(
+            SOURCE, [r["artifact_id"] for r in items if r["artifact_id"] not in processed]
+        )
         key = manifest.commit()
         api.close()
         cdn.close()
 
     stats = {
         "items": len(items),
+        "processed": len(processed),
+        "released": released,
+        "stopped_early": stopped_early,
         "workflows": workflows,
         "failed": failed,
         "records": manifest.count,
@@ -196,7 +242,7 @@ def run(
     }
     frontier.finish_run(
         run_id,
-        items=stats["items"],
+        items=stats["processed"],
         workflows=stats["workflows"],
         requests=stats["requests"],
         bytes_down=stats["bytes_down"],

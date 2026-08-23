@@ -95,6 +95,7 @@ def cmd_fetch(cfg: Config, args: argparse.Namespace) -> dict:
             batch=args.batch,
             keep_prefix=not args.no_prefix,
             use_api=not args.no_api,
+            deadline_seconds=args.deadline_seconds,
         )
     finally:
         frontier.close()
@@ -226,6 +227,13 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--batch", type=int, default=200)
     p.add_argument("--no-prefix", action="store_true", help="do not retain byte prefixes")
     p.add_argument("--no-api", action="store_true", help="bytes channel only")
+    p.add_argument(
+        "--deadline-seconds",
+        type=float,
+        default=None,
+        help="stop and hand leases back after this long (default $LAKE_FETCH_DEADLINE). "
+        "Keep it below the Job's activeDeadlineSeconds.",
+    )
     p.set_defaults(fn=cmd_fetch)
 
     p = sub.add_parser("ingest")

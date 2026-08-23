@@ -173,3 +173,87 @@ def test_a_genuine_404_still_returns_none() -> None:
         transport=httpx.MockTransport(lambda r: httpx.Response(404, json={"error": "gone"}))
     )
     assert civitai.image_get(client, 123) is None
+
+
+class LeaseFrontier:
+    """Enough Frontier to exercise the lease lifecycle."""
+
+    def __init__(self, n: int) -> None:
+        self.leased = [{"artifact_id": str(i), "prefilter": {}} for i in range(n)]
+        self.finished: dict[str, str] = {}
+        self.released: list[str] = []
+        self.runs: list[str] = []
+
+    def start_run(self, job, source):
+        self.runs.append(job)
+        return "run-1"
+
+    def finish_run(self, run_id, **kw):
+        self.last_run = kw
+
+    def claim(self, source, batch, lease_seconds=900):
+        return self.leased[:batch]
+
+    def finish(self, source, aid, state, error=None):
+        self.finished[aid] = state
+
+    def release(self, source, ids):
+        self.released.extend(ids)
+        return len(ids)
+
+    # The latch gate runs before any request; no host is latched here.
+    def latched(self, host):
+        return None
+
+    def record_refusal(self, host, status, threshold, detail=""):
+        return False
+
+    def record_success(self, host):
+        pass
+
+
+def test_fetch_returns_unreached_leases_when_the_deadline_hits(monkeypatch, tmp_path) -> None:
+    """The livelock this fixes: a batch that cannot finish inside the Job's
+    activeDeadlineSeconds was SIGKILLed holding every lease it took, so the next
+    tick found nothing claimable for a full lease window and did nothing."""
+    from lake.config import Config
+    from pipeline import fetch
+
+    f = LeaseFrontier(100)
+    cfg = Config(
+        database_url="",
+        blob_root=str(tmp_path),
+        user_agent="t",
+        civitai_api_key=None,
+        api_rps=1000,
+        cdn_rps=1000,
+        keep_prefix_days=90,
+        fetch_deadline=0.0,
+    )
+    # Deadline 0: the loop must stop before the first artifact and hand all 100 back.
+    stats = fetch.run(cfg, f, batch=100)
+    assert stats["stopped_early"] == "deadline"
+    assert stats["processed"] == 0
+    assert len(f.released) == 100, "every unreached lease must go back to pending"
+    assert stats["released"] == 100
+
+
+def test_fetch_reports_processed_not_leased(monkeypatch, tmp_path) -> None:
+    """crawl_run.items showed the leased count, so a truncated run looked
+    identical to a complete one."""
+    from lake.config import Config
+    from pipeline import fetch
+
+    f = LeaseFrontier(10)
+    cfg = Config(
+        database_url="",
+        blob_root=str(tmp_path),
+        user_agent="t",
+        civitai_api_key=None,
+        api_rps=1000,
+        cdn_rps=1000,
+        keep_prefix_days=90,
+        fetch_deadline=0.0,
+    )
+    fetch.run(cfg, f, batch=10)
+    assert f.last_run["items"] == 0, "items must reflect work done, not work leased"

@@ -3,9 +3,9 @@
 Two streams, because Civitai's cursor caps at ~4,400 items and they therefore
 need completely different shapes:
 
-* **tip** — page `sort=Newest` until it meets the newest id we already know,
-  then stop. Bounded by how much was published since the last run, so a 15-minute
-  cadence never comes near the cursor cap.
+* **tip** — page `sort=Newest` until a page holds nothing we do not already
+  have, then stop. Bounded by how much was published since the last run, so a
+  15-minute cadence never comes near the cursor cap.
 * **backlog** — drain one partition at a time. Partitions come from the tip:
   every artifact carries a `userId`, so the tip crawl accumulates the partition
   list and the backlog crawl works through it. History is a breadth-first
@@ -17,6 +17,7 @@ that a discovery bug never costs bandwidth.
 
 from __future__ import annotations
 
+import contextlib
 import datetime as dt
 import sys
 
@@ -29,6 +30,21 @@ from lake.polite import PoliteClient
 SOURCE = "civitai"
 TIP_PRIORITY = 100
 BACKLOG_PRIORITY = 0
+
+# How many consecutive pages must add nothing before the tip is considered
+# caught up. See the loop in `discover_tip` for why one is not enough.
+DRY_PAGES_TO_STOP = 2
+
+
+def _published(items: list[dict]) -> list[dt.datetime]:
+    """publishedAt for every item that has a parseable one."""
+    out = []
+    for item in items:
+        raw = item.get("publishedAt") or item.get("createdAt")
+        if raw:
+            with contextlib.suppress(ValueError):
+                out.append(dt.datetime.fromisoformat(str(raw).replace("Z", "+00:00")))
+    return out
 
 
 def _to_items(rows: list[dict], frontier: Frontier, one_per_post: bool) -> list[QueueItem]:
@@ -83,11 +99,11 @@ def discover_tip(
     run_id = frontier.start_run("discover-tip", SOURCE)
     client = PoliteClient(rps=cfg.api_rps, user_agent=cfg.user_agent, latch=PostgresLatch(frontier))
     state = frontier.get_cursor(SOURCE, "tip") or {}
-    frontier_id = int(state.get("frontier_id") or 0)
 
     cursor = None
-    queued = partitions = pages = 0
-    newest_seen = frontier_id
+    queued = partitions = pages = dry_pages = 0
+    newest_id = int(state.get("frontier_id") or 0)
+    newest_published: dt.datetime | None = None
     caught_up = False
 
     try:
@@ -96,29 +112,43 @@ def discover_tip(
             if not items:
                 break
             pages += 1
-            newest_seen = max(newest_seen, max(int(i["id"]) for i in items))
-
-            fresh = [i for i in items if int(i["id"]) > frontier_id]
-            if len(fresh) < len(items):
-                caught_up = True
+            newest_id = max(newest_id, max(int(i["id"]) for i in items))
+            newest_published = max(
+                [newest_published, *_published(items)] if newest_published else _published(items),
+                default=None,
+            )
 
             # Partitions come from every artifact seen, wanted or not: a user who
             # posts anything is a user whose whole history is reachable.
             partitions += frontier.add_partitions(
                 SOURCE,
                 "user",
-                sorted({str(i["userId"]) for i in fresh if i.get("userId")}),
+                sorted({str(i["userId"]) for i in items if i.get("userId")}),
             )
-            keep = [i for i in fresh if civitai.wanted(i, mode=mode)]
-            queued += frontier.enqueue(
+            keep = [i for i in items if civitai.wanted(i, mode=mode)]
+            # Known ground is measured by what the INSERT actually inserted, not
+            # by comparing ids against a watermark. `enqueue` is ON CONFLICT DO
+            # NOTHING and returns the number of genuinely new rows, so a page
+            # that adds nothing is a page we have already seen — whatever order
+            # the source chose to return it in.
+            new_rows = frontier.enqueue(
                 _to_items(keep, frontier, one_per_post), priority=TIP_PRIORITY
             )
-            if caught_up or not cursor:
+            queued += new_rows
+
+            # One barren page is not proof: `wanted` can reject a whole page of
+            # genuinely new artifacts, and stopping there would leave anything
+            # behind it unreachable. Two in a row means we are past the new work.
+            dry_pages = dry_pages + 1 if new_rows == 0 else 0
+            if dry_pages >= DRY_PAGES_TO_STOP:
+                caught_up = True
+                break
+            if not cursor:
                 break
     finally:
         client.close()
 
-    frontier.set_cursor(SOURCE, "tip", None, str(newest_seen) if newest_seen else None)
+    frontier.set_cursor(SOURCE, "tip", None, str(newest_id) if newest_id else None)
     frontier.finish_run(
         run_id, items=queued, requests=client.stats.requests, bytes_down=client.stats.bytes_down
     )
@@ -126,7 +156,8 @@ def discover_tip(
         "pages": pages,
         "queued": queued,
         "new_partitions": partitions,
-        "frontier_id": newest_seen,
+        "frontier_id": newest_id,
+        "newest_published": newest_published.isoformat() if newest_published else None,
         "caught_up": caught_up,
         "requests": client.stats.requests,
     }

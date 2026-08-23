@@ -257,3 +257,149 @@ def test_fetch_reports_processed_not_leased(monkeypatch, tmp_path) -> None:
     )
     fetch.run(cfg, f, batch=10)
     assert f.last_run["items"] == 0, "items must reflect work done, not work leased"
+
+
+class TipFrontier:
+    """Enough Frontier to exercise tip discovery, with real ON CONFLICT semantics."""
+
+    def __init__(self, known: set[str] | None = None) -> None:
+        self.known = set(known or ())
+        self.cursor_state: dict | None = None
+        self.partitions: set[str] = set()
+
+    def start_run(self, job, source):
+        return "run-1"
+
+    def finish_run(self, run_id, **kw):
+        self.last_run = kw
+
+    def get_cursor(self, source, stream):
+        return self.cursor_state
+
+    def set_cursor(self, source, stream, cursor, frontier_id):
+        self.cursor_state = {"cursor": cursor, "frontier_id": frontier_id}
+
+    def add_partitions(self, source, kind, ids):
+        new = set(ids) - self.partitions
+        self.partitions |= new
+        return len(new)
+
+    def posts_already_captured(self, source, post_ids):
+        return set()
+
+    def enqueue(self, items, *, priority):
+        """Mirrors ON CONFLICT DO NOTHING: only genuinely new ids count."""
+        new = [i for i in items if i.artifact_id not in self.known]
+        self.known.update(i.artifact_id for i in new)
+        return len(new)
+
+    def latched(self, host):
+        return None
+
+    def record_refusal(self, host, status, threshold, detail=""):
+        return False
+
+    def record_success(self, host):
+        pass
+
+
+def _listing_item(image_id: int, published: str, *, comfy: bool = True) -> dict:
+    return {
+        "id": image_id,
+        "postId": image_id * 10,
+        "userId": 7,
+        "publishedAt": published,
+        "toolIds": [86] if comfy else [],
+        "hasMeta": False,
+        "type": "image",
+        "url": f"https://image.civitai.com/{image_id}/x.png",
+    }
+
+
+def test_tip_advances_when_publish_order_disagrees_with_id_order(monkeypatch) -> None:
+    """The stall this fixes.
+
+    Civitai's `sort=Newest` orders by publishedAt, but ids are assigned at
+    UPLOAD. Someone uploads privately and publishes days later, so a
+    freshly-published image can carry an id far below one we already hold — a
+    single observed page spanned 4.7M ids. Discovery used `max(id)` as its
+    watermark, so once a high id landed, every subsequently-published artifact
+    looked old, `fresh` was empty forever and the queue drained to zero pending
+    and stayed there.
+    """
+    from lake.config import Config
+    from pipeline import discover
+
+    # We already hold 500, the highest id. Everything published SINCE is lower.
+    frontier = TipFrontier(known={"500"})
+    frontier.set_cursor("civitai", "tip", None, "500")
+    pages = [
+        [_listing_item(140, "2026-08-23T05:38:00Z"), _listing_item(500, "2026-08-23T05:31:00Z")],
+        [_listing_item(141, "2026-08-23T05:20:00Z")],
+        [],
+    ]
+    monkeypatch.setattr(
+        discover.civitai,
+        "page_images",
+        lambda client, cursor=None, **kw: (pages[cursor or 0], (cursor or 0) + 1),
+    )
+    cfg = Config(
+        database_url="",
+        blob_root="",
+        user_agent="t",
+        civitai_api_key=None,
+        api_rps=1000,
+        cdn_rps=1000,
+        keep_prefix_days=90,
+        fetch_deadline=600.0,
+    )
+
+    out = discover.discover_tip(cfg, frontier, max_pages=5)
+
+    assert out["queued"] == 2, "ids below the watermark are still new work"
+    assert {"140", "141"} <= frontier.known
+    assert out["newest_published"] is not None
+
+
+def test_tip_stops_once_pages_stop_adding_anything(monkeypatch) -> None:
+    """Known ground is 'this page inserted nothing', twice — not an id compare.
+
+    One barren page is not enough: `wanted` can reject a whole page of genuinely
+    new artifacts, and stopping there would strand everything behind it.
+    """
+    from lake.config import Config
+    from pipeline import discover
+
+    frontier = TipFrontier(known={"1", "2", "3"})
+    pages = [
+        [_listing_item(1, "2026-08-23T05:00:00Z")],  # dry 1
+        [_listing_item(9, "2026-08-23T04:59:00Z")],  # resets the counter
+        [_listing_item(2, "2026-08-23T04:58:00Z")],  # dry 1
+        [_listing_item(3, "2026-08-23T04:57:00Z")],  # dry 2 -> stop
+        [_listing_item(99, "2026-08-23T04:56:00Z")],  # must never be reached
+    ]
+    seen_pages = []
+
+    def _page(client, cursor=None, **kw):
+        idx = cursor or 0
+        seen_pages.append(idx)
+        return pages[idx], idx + 1
+
+    monkeypatch.setattr(discover.civitai, "page_images", _page)
+    cfg = Config(
+        database_url="",
+        blob_root="",
+        user_agent="t",
+        civitai_api_key=None,
+        api_rps=1000,
+        cdn_rps=1000,
+        keep_prefix_days=90,
+        fetch_deadline=600.0,
+    )
+
+    out = discover.discover_tip(cfg, frontier, max_pages=10)
+
+    assert out["caught_up"] is True
+    assert out["queued"] == 1, "only id 9 was new"
+    assert "99" not in frontier.known
+    assert len(seen_pages) == 4, "stopped after two consecutive barren pages"

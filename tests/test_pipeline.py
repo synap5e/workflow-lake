@@ -499,8 +499,8 @@ def test_every_ingested_table_dedupes_on_reinsert() -> None:
 
     `raw_artifacts`, `derived_workflow_nodes` and `derived_workflow_bindings`
     shipped as plain MergeTree. Ingest re-read every manifest on every tick
-    (see the watermark test below), so those three accumulated a copy of every
-    row per run while the two ReplacingMergeTree tables stayed correct.
+    (see the consumed-set test below), so those three accumulated a copy of
+    every row per run while the two ReplacingMergeTree tables stayed correct.
 
     The old e2e asserted "re-ingest is idempotent" against `derived_workflows`
     alone — the table that was already safe — so it passed throughout.
@@ -540,19 +540,19 @@ def test_bindings_rows_are_distinguishable_per_node() -> None:
     assert len(keys) == 2, "identical rows cannot be deduplicated without losing a real instance"
 
 
-class WatermarkFrontier:
-    """Records what ingest reads and writes for its watermark."""
+class ConsumedSetFrontier:
+    """Records what ingest reads and writes for its consumed-manifest set."""
 
-    def __init__(self, cursor: str | None = None) -> None:
-        self.cursor = cursor
+    def __init__(self, consumed: set[str] | None = None) -> None:
+        self.consumed: set[str] = set(consumed or ())
         self.runs: list[str] = []
         self.finished: dict = {}
 
-    def get_cursor(self, source, stream):
-        return {"cursor": self.cursor} if self.cursor else None
+    def consumed_manifests(self):
+        return set(self.consumed)
 
-    def set_cursor(self, source, stream, cursor, frontier_id):
-        self.cursor = cursor
+    def mark_consumed(self, manifest_key):
+        self.consumed.add(manifest_key)
 
     def start_run(self, job, source):
         self.runs.append(job)
@@ -562,21 +562,15 @@ class WatermarkFrontier:
         self.finished = kw
 
 
-def test_ingest_resumes_from_its_watermark_instead_of_the_whole_bucket(monkeypatch) -> None:
-    """The root cause. `run` computed a watermark, returned it, and nobody stored it.
-
-    `--since` existed but the CronJob never passed it, so every hourly tick
-    re-read every manifest ever written. Cost grew with the size of the bucket
-    rather than with the work actually available.
-    """
-    from lake.config import Config
+def _ingest_harness(monkeypatch, keys: list[str]):
+    """Stub the store, ClickHouse, and transform; return the read-keys log."""
     from pipeline import ingest
 
     seen: list[str] = []
 
     class FakeStore:
         def list(self, prefix):
-            return ["raw/c/0001.jsonl.gz", "raw/c/0002.jsonl.gz", "raw/c/0003.jsonl.gz"]
+            return list(keys)
 
     class FakeCH:
         database = "workflow_lake"
@@ -597,7 +591,13 @@ def test_ingest_resumes_from_its_watermark_instead_of_the_whole_bucket(monkeypat
     monkeypatch.setattr(
         ingest, "transform", lambda recs, store, ref, **kw: dict.fromkeys(ingest.TABLES, [])
     )
-    cfg = Config(
+    return seen, FakeCH
+
+
+def _cfg():
+    from lake.config import Config
+
+    return Config(
         database_url="",
         blob_root="/x",
         user_agent="t",
@@ -608,19 +608,59 @@ def test_ingest_resumes_from_its_watermark_instead_of_the_whole_bucket(monkeypat
         fetch_deadline=600.0,
     )
 
+
+def test_ingest_skips_consumed_manifests_instead_of_rereading_the_bucket(monkeypatch) -> None:
+    """The first incident. `run` computed a watermark, returned it, and nobody
+    stored it; every hourly tick re-read every manifest ever written. The
+    consumed set keeps that property: cost grows with the work available, not
+    with the size of the bucket.
+    """
+    from pipeline import ingest
+
+    seen, FakeCH = _ingest_harness(
+        monkeypatch, ["raw/c/0001.jsonl.gz", "raw/c/0002.jsonl.gz", "raw/c/0003.jsonl.gz"]
+    )
+
     # Cold start: nothing consumed yet, so everything is new.
-    f = WatermarkFrontier()
-    out = ingest.run(cfg, clickhouse=FakeCH(), frontier=f)
+    f = ConsumedSetFrontier()
+    out = ingest.run(_cfg(), clickhouse=FakeCH(), frontier=f)
     assert out["manifests"] == 3
-    assert f.cursor == "raw/c/0003.jsonl.gz", "the watermark must be persisted, not just returned"
+    assert f.consumed == {
+        "raw/c/0001.jsonl.gz",
+        "raw/c/0002.jsonl.gz",
+        "raw/c/0003.jsonl.gz",
+    }, "consumption must be persisted, not just returned"
 
     # Second tick: the same bucket, nothing new. This is the run that used to
     # re-ingest all three and multiply every row.
     seen.clear()
-    out = ingest.run(cfg, clickhouse=FakeCH(), frontier=f)
+    out = ingest.run(_cfg(), clickhouse=FakeCH(), frontier=f)
     assert out["manifests"] == 0
     assert seen == [], "already-consumed manifests must not be re-read"
     assert f.runs == ["ingest", "ingest"], "ingest must appear in crawl_run like every other job"
+
+
+def test_a_manifest_sorting_before_consumed_keys_is_still_ingested(monkeypatch) -> None:
+    """The second incident: the 20-day silent stall.
+
+    Manifest keys embed a random uuid4, so they do not sort in arrival order.
+    The watermark that replaced the re-reads compared keys with `>`, ratcheted
+    to the lexicographic max of every UUID seen, and dropped whatever sorted
+    below it: 87% of everything fetched over 31 days, then — once it landed on
+    a key starting ffde — everything, while the CronJob reported green. New
+    work is decided by membership, never by key order.
+    """
+    from pipeline import ingest
+
+    high = "raw/civitai/2026-09/ffde02ea-9bea-43f0-9daa-59b821e26b19-0002.jsonl.gz"
+    low = "raw/civitai/2026-09/aaaa0000-bc61-4b2e-974d-e7532af938f1-0000.jsonl.gz"
+    seen, FakeCH = _ingest_harness(monkeypatch, [high, low])
+
+    f = ConsumedSetFrontier(consumed={high})
+    out = ingest.run(_cfg(), clickhouse=FakeCH(), frontier=f)
+    assert out["manifests"] == 1
+    assert seen == [low], "a new manifest sorting before consumed ones is still new work"
+    assert low in f.consumed
 
 
 def test_a_link_type_that_is_a_list_does_not_crash_derive() -> None:

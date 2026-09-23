@@ -207,6 +207,20 @@ class Frontier:
                 (source, stream, cursor, frontier_id),
             )
 
+    # --- ingest consumed set ---------------------------------------------
+
+    def consumed_manifests(self) -> set[str]:
+        with self.tx() as cur:
+            cur.execute("SELECT manifest_key FROM ingest_manifest")
+            return {r["manifest_key"] for r in cur.fetchall()}
+
+    def mark_consumed(self, manifest_key: str) -> None:
+        with self.tx() as cur:
+            cur.execute(
+                "INSERT INTO ingest_manifest (manifest_key) VALUES (%s) ON CONFLICT DO NOTHING",
+                (manifest_key,),
+            )
+
     # --- partitions ------------------------------------------------------
 
     def add_partitions(self, source: str, kind: str, keys: list[str]) -> int:

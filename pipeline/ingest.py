@@ -393,13 +393,9 @@ def transform(
     return out
 
 
-WATERMARK_STREAM = "ingest"
-
-
 def run(
     cfg: Config,
     *,
-    since: str | None = None,
     clickhouse: ClickHouse | None = None,
     ref: Reference | None = None,
     limit_manifests: int | None = None,
@@ -407,50 +403,49 @@ def run(
 ) -> dict:
     """Load manifests under `raw/` that this has not already loaded.
 
-    The watermark is the manifest key of the last one consumed, and it is
-    PERSISTED. Before, `run` computed it, returned it in the stats, and nobody
-    wrote it down — so every hourly tick re-read every manifest from the
-    beginning of time and re-inserted every row. The tables that could absorb
-    that were `ReplacingMergeTree`; the three that could not reached 5-6x
-    duplication, and the cost of a run grew with the size of the bucket rather
-    than with the work done.
+    "Already loaded" is membership in `ingest_manifest`, one row per consumed
+    manifest. The first cut was a single watermark key compared with `>`, and
+    manifest keys embed a random uuid4, so they do not sort in arrival order:
+    the watermark ratcheted to the lexicographic max of every key seen and
+    silently dropped whatever sorted below it — most of the bucket, and once it
+    landed on an ffde... key, all of it, while the CronJob stayed green. A set
+    has no order to get wrong, and it costs nothing extra: every tick already
+    lists the whole prefix.
 
-    Both halves of the fix matter and neither is sufficient. The watermark stops
-    the pointless re-reading. Idempotent engines mean a lost watermark, a forced
-    rebuild, or a re-run of a partially-failed tick stays correct instead of
-    silently multiplying rows.
+    Membership is marked per manifest, not once at the end, so a run killed
+    halfway (the CronJob has a 50-minute deadline) resumes after the last
+    manifest it actually finished. Idempotent engines mean a truncated
+    `ingest_manifest`, a forced rebuild, or a re-run of a partially-failed tick
+    stays correct instead of silently multiplying rows.
     """
     store = open_store(cfg.blob_root)
     ch = clickhouse or ClickHouse()
     ensure_schema(ch)
     ref = ref or Reference.load()
 
-    if since is None and frontier is not None:
-        state = frontier.get_cursor("_ingest", WATERMARK_STREAM) or {}
-        since = state.get("cursor")
-
-    keys = [k for k in store.list("raw/") if k.endswith(".jsonl.gz")]
-    if since:
-        keys = [k for k in keys if k > since]
-    if limit_manifests:
+    keys = sorted(k for k in store.list("raw/") if k.endswith(".jsonl.gz"))
+    if frontier is not None:
+        done = frontier.consumed_manifests()
+        keys = [k for k in keys if k not in done]
+    remaining = 0
+    if limit_manifests and len(keys) > limit_manifests:
+        remaining = len(keys) - limit_manifests
         keys = keys[:limit_manifests]
 
     run_id = frontier.start_run("ingest", "_ingest") if frontier is not None else None
     totals = dict.fromkeys(TABLES, 0)
     failures: list[dict] = []
     records = 0
-    consumed = since
+    consumed = None
     try:
         for key in keys:
             batch = transform(read_manifest(store, key), store, ref, failures=failures)
             records += len(batch["raw_artifacts"])
             for table, lines in batch.items():
                 totals[table] += ch.insert_jsonl(table, iter(lines))
-            # Advanced per manifest, not once at the end: a run killed halfway
-            # then resumes after the last manifest it actually finished.
             consumed = key
             if frontier is not None:
-                frontier.set_cursor("_ingest", WATERMARK_STREAM, consumed, None)
+                frontier.mark_consumed(key)
             print(f"  {key}: {len(batch['raw_artifacts'])} records", file=sys.stderr)
     finally:
         if run_id is not None:
@@ -470,5 +465,6 @@ def run(
         "rows": totals,
         "skipped": len(failures),
         "skipped_reasons": sorted({f["error"].split(":")[0] for f in failures}),
-        "watermark": consumed,
+        "last_manifest": consumed,
+        "remaining": remaining,
     }

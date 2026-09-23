@@ -4,7 +4,7 @@
     lake discover-tip      [--mode complete|comfy|all] [--max-pages N]
     lake discover-backlog  [--partitions N]
     lake fetch             [--batch N] [--no-prefix]
-    lake ingest            [--since KEY]
+    lake ingest            [--limit N]
     lake gc
     lake unlatch <host>
     lake selftest          # packaged data present? no DB, no network
@@ -104,16 +104,17 @@ def cmd_fetch(cfg: Config, args: argparse.Namespace) -> dict:
 def cmd_ingest(cfg: Config, args: argparse.Namespace) -> dict:
     """Load new manifests into ClickHouse.
 
-    The frontier is passed so ingest can read and advance its watermark, and so
-    the run lands in `crawl_run` like every other job. It previously did
-    neither: `--since` existed but the CronJob never passed it, and nothing
-    persisted the value, so each tick re-ingested the whole bucket.
+    The frontier is passed so ingest can read and extend its consumed-manifest
+    set, and so the run lands in `crawl_run` like every other job. There is no
+    `--since` escape hatch: it filtered keys lexicographically, and manifest
+    keys embed a random uuid4, so "after this key" never meant "newer than
+    this" — that comparison is what stalled ingest for 20 days.
     """
     from pipeline import ingest
 
     frontier = _frontier(cfg)
     try:
-        return ingest.run(cfg, since=args.since, limit_manifests=args.limit, frontier=frontier)
+        return ingest.run(cfg, limit_manifests=args.limit, frontier=frontier)
     finally:
         frontier.close()
 
@@ -251,7 +252,6 @@ def build_parser() -> argparse.ArgumentParser:
     p.set_defaults(fn=cmd_fetch)
 
     p = sub.add_parser("ingest")
-    p.add_argument("--since", default=None, help="only manifests with a key after this")
     p.add_argument("--limit", type=int, default=None)
     p.set_defaults(fn=cmd_ingest)
 
